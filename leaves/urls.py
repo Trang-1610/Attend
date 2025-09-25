@@ -8,7 +8,7 @@ router.register(r'leave-requests', LeaveRequestViewSet, basename='leave-request'
 urlpatterns = [
     # API Get data to show leave request form
     path(
-        'leave-request/<int:account_id>/<int:subject_id>/<int:academic_year_id>/<int:semester_id>/',
+        'leave-requests/<int:account_id>/<int:subject_id>/',
         LeaveRequestRawView.as_view(),
         name='get-data-to-leave-request'
     ),

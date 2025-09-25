@@ -41,25 +41,13 @@ class LecturerAssignmentAPIView(APIView):
             class_obj = Class.objects.get(pk=class_id)
             semester = Semester.objects.get(pk=semester_id)
 
-            # Merge subject_name to a name
-            subject_names = Subject.objects.filter(pk__in=subject_ids).values_list('subject_name', flat=True)
-            subject_names_str = ", ".join(subject_names)
-
             # Only send an email
-            send_assignment_email(
-                to_email=lecturer.account.email,
-                full_name=lecturer.fullname,
-                subject_name=subject_names_str,
-                class_name=class_obj.class_name,
-            )
-
-            # Send notification
-            Notification.objects.create(
-                title=f"Phân công giảng viên {lecturer.fullname}",
-                content=f"Giảng viên {lecturer.fullname} được phân công dạy môn {subject_names_str} cho lớp {class_obj.class_name} (học kỳ {semester.semester_name}).",
-                created_by=request.user,
-                to_target=lecturer.account
-            )
+            # send_assignment_email(
+            #     to_email=lecturer.account.email,
+            #     full_name=lecturer.fullname,
+            #     subject_name=subject_names_str,
+            #     class_name=class_obj.class_name,
+            # )
 
             return Response({
                 "message": "Gán giảng viên và gửi email thành công",

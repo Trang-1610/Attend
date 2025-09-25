@@ -30,7 +30,7 @@ export default function AccountManagement() {
             const response = await api.get("accounts/get-all-accounts/");
             setUsers(response.data);
         } catch (error) {
-            message.error("Không thể tải dữ liệu người dùng");
+            message.error("Bạn không có quyền truy cập.");
         } finally {
             setLoading(false);
         }

@@ -3,14 +3,11 @@ from accounts.models import Account
 from students.models import Department
 from subjects.models import Subject
 import random
-
-def generate_random_code():
-    return str(random.randint(10000000, 99999999))
-
+from helper.generate_random_code import generate_random_code
 
 class Lecturer(models.Model):
     lecturer_id = models.BigAutoField(primary_key=True)
-    lecturer_code = models.CharField(max_length=8, unique=True, default=generate_random_code)
+    lecturer_code = models.UUIDField(default=generate_random_code, unique=True)
     fullname = models.CharField(max_length=255)
     account = models.OneToOneField(Account, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
@@ -37,6 +34,7 @@ class LecturerSubject(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     lecturer = models.ForeignKey(Lecturer, on_delete=models.CASCADE) 
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'lecturer_subjects'

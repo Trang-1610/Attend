@@ -3,6 +3,7 @@ from classes.models import Schedule
 from students.models import Student, Device
 from lecturers.models import Lecturer
 from django.utils import timezone
+from helper.generate_random_code import generate_random_code
 
 # ==============================
 # ATTENDANCE MODEL
@@ -18,34 +19,37 @@ class Attendance(models.Model):
         QR = "Q", "Quét QR"
 
     attendance_id = models.BigAutoField(primary_key=True)
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    attendance_code = models.UUIDField(default=generate_random_code, unique=True)
+    schedule = models.ForeignKey("classes.Schedule", on_delete=models.CASCADE)
+    student = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, limit_choices_to={"user_type": "student"})
+    
     status = models.CharField(max_length=1, choices=Status.choices, default=Status.PRESENT)
     attendance_type = models.CharField(max_length=1, choices=AttendanceType.choices)
-    checkin_at = models.TimeField(auto_now_add=False, null=True)# models.Ti(auto_now_add=True)
-    face_image_url = models.TextField(null=True, blank=True)
+    checkin_at = models.DateTimeField(null=True, blank=True)
+
+    face_image_url = models.URLField(null=True, blank=True)
     verified_by_ai = models.BooleanField(default=False)
+
     checkin_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     checkin_long = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    checkin_device = models.ForeignKey(Device, on_delete=models.SET_NULL, null=True, blank=True)
+    checkin_device = models.ForeignKey("students.Device", on_delete=models.SET_NULL, null=True, blank=True)
+
     is_late = models.BooleanField(default=False)
     late_reason = models.TextField(null=True, blank=True)
-    checkin_method = models.CharField(max_length=20, null=True, blank=True)
     note = models.TextField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'attendances'
+        db_table = "attendances"
         indexes = [
-            models.Index(fields=['schedule', 'student']),
-            models.Index(fields=['checkin_device']),
+            models.Index(fields=["schedule", "student"]),
+            models.Index(fields=["checkin_device"]),
         ]
-        verbose_name = 'Attendance'
-        verbose_name_plural = 'Attendances'
 
     def __str__(self):
-        return f"{self.student.fullname} - {self.schedule}"
+        return f"{self.student} - {self.schedule}"
 
 
 # ==============================
@@ -63,6 +67,9 @@ class AttendanceVerification(models.Model):
     verified_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=1, choices=VerificationStatus.choices, default=VerificationStatus.PENDING)
     note = models.TextField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'attendance_verifications'
@@ -108,9 +115,11 @@ class FaceRecognitionLog(models.Model):
 class QRCheckin(models.Model):
     qr_checkin_id = models.BigAutoField(primary_key=True)
     qr_code = models.CharField(max_length=255, unique=True)
+    qr_image_url = models.URLField(null=True, blank=True)
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
     expire_at = models.TimeField(auto_now_add=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
     usage_count = models.IntegerField(default=0)

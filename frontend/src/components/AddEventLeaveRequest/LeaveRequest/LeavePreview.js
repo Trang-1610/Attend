@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from 'antd';
 
-export default function LeavePreview({ academicYears, subjects, selectedAcademicYear, selectedSubject, form, personalLeave, formattedDate, leaveData, selectedSemester, semesters, images }) {
+export default function LeavePreview({ form, personalLeave, formattedDate, leaveData, images }) {
 
     const rangeDate = form?.getFieldValue("rangeDate");
     const rangeDateErrors = form?.getFieldError("rangeDate") || [];
@@ -18,7 +18,7 @@ export default function LeavePreview({ academicYears, subjects, selectedAcademic
                 <p className="mt-6"><strong>Kính gửi: </strong> Giảng viên {leaveData?.lecturer_name} </p>
 
                 <div className="grid grid-cols-2 gap-8 mt-4">
-                    <p><strong>Em tên là: </strong> {leaveData?.fullname}</p>
+                    <p><strong>Em tên là: </strong> {leaveData?.student_name}</p>
                     <p><strong>Mã số sinh viên: </strong> {leaveData?.student_code}</p>
                 </div>
 
@@ -29,12 +29,11 @@ export default function LeavePreview({ academicYears, subjects, selectedAcademic
 
                 <div className="space-y-4 mt-4">
                     <p><strong>Năm học - Học kỳ: </strong>
-                        {academicYears?.find(item => item.academic_year_id === selectedAcademicYear)?.academic_year_name || ''} -
-                        {semesters?.find(item => item.semester_id === selectedSemester)?.semester_name || ''}
+                        {leaveData?.academic_year_name} - {leaveData?.semester_name}
                     </p>
-                    <p><strong>Môn học: </strong> {
-                        subjects.find(item => item?.subject_id === selectedSubject)?.subject_name || ''
-                    }</p>
+                    <p><strong>Môn học: </strong> 
+                        {leaveData?.subject_name}
+                    </p>
                     <p><strong>Thời gian nghỉ phép: </strong>
                         {rangeDate && rangeDate[0] && rangeDate[1] && rangeDateErrors.length === 0
                             ? `${rangeDate[0].format("HH:mm DD/MM/YYYY")} - ${rangeDate[1].format("HH:mm DD/MM/YYYY")}`
@@ -62,7 +61,7 @@ export default function LeavePreview({ academicYears, subjects, selectedAcademic
                         <p>{formattedDate}</p>
                         <p><strong>Người làm đơn</strong></p>
                         <p className="italic">(Ký và ghi rõ họ tên)</p>
-                        <p className='mt-5'><strong>{leaveData?.fullname}</strong></p>
+                        <p className='mt-5'><strong>{leaveData?.student_name}</strong></p>
                     </div>
                 </div>
             </div>

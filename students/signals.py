@@ -12,6 +12,7 @@ from django.dispatch import receiver
 from datetime import datetime
 from .models import SubjectRegistrationRequest, StudentSubject
 from subjects.models import Subject
+from accounts.utils.serializers import serialize_instance
 
 _old_instance_cache = {}
 
@@ -93,57 +94,35 @@ def account_pre_save(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_instance = Account.objects.get(pk=instance.pk)
-
-            fields_to_convert = [f.name for f in Account._meta.fields if f.name != 'avatar_url']
-            old_data = model_to_dict(old_instance, fields=fields_to_convert)
-
-            if old_instance.avatar_url and hasattr(old_instance.avatar_url, 'url'):
-                old_data['avatar_url'] = old_instance.avatar_url.url
-            else:
-                old_data['avatar_url'] = None
-            
-            _old_instance_cache[f"account_{instance.pk}"] = old_data
-
+            instance._old_data = serialize_instance(old_instance, exclude_fields=["avatar"])
         except Account.DoesNotExist:
-            pass
-
+            instance._old_data = None
 
 @receiver(post_save, sender=Account)
 def account_post_save(sender, instance, created, **kwargs):
-    old_data = _old_instance_cache.pop(f"account_{instance.pk}", None)
+    new_data = serialize_instance(instance, exclude_fields=["avatar"])
 
-    fields_to_convert = [f.name for f in Account._meta.fields if f.name != 'avatar_url']
-    new_data = model_to_dict(instance, fields=fields_to_convert)
-
-    if instance.avatar_url and hasattr(instance.avatar_url, 'url'):
-        new_data['avatar_url'] = instance.avatar_url.url
+    if created:
+        AuditLog.objects.create(
+            operation=AuditLog.Operation.CREATE,
+            new_data=new_data,
+            changed_by=getattr(instance, "_changed_by", None),
+            entity_name="Account",
+            record_id=str(instance.pk),
+            action_description="Tạo tài khoản mới",
+        )
     else:
-        new_data['avatar_url'] = None
-
-    user, ip, ua = get_request_user_ip_agent()
-    if not user:
-        return
-
-    AuditLog.objects.create(
-        operation="C" if created else "U",
-        old_data=old_data if old_data else {},
-        new_data=new_data,
-        changed_by=user,
-        ip_address=ip or "",
-        user_agent=ua or "",
-        record_id=str(instance.pk),
-        entity_id=str(instance.pk),
-        entity_name="Account",
-        action_description="Tài khoản được tạo" if created else "Cập nhật thông tin tài khoản",
-    )
-
-    # Record notification for the user to be updated
-    # Notification.objects.create(
-    #     title="Cập nhật thông tin tài khoản",
-    #     content="Thông tin tài khoản của bạn đã được cập nhật.",
-    #     created_by=user,
-    #     to_target=instance,
-    # )
+        old_data = getattr(instance, "_old_data", None)
+        if old_data != new_data:
+            AuditLog.objects.create(
+                operation=AuditLog.Operation.UPDATE,
+                old_data=old_data,
+                new_data=new_data,
+                changed_by=getattr(instance, "_changed_by", None),
+                entity_name="Account",
+                record_id=str(instance.pk),
+                action_description="Cập nhật tài khoản",
+            )
 
 
 # ======================== STUDENT ===========================

@@ -7,8 +7,6 @@ import Contact from "../pages/contact/Contact";
 import Notification from "../pages/notification/Notification";
 import Introduction from "../pages/introduction/Introduction";
 import ToDoList from "../pages/to-do-list/ToDoList";
-import AddFace from "../pages/add-face/AddFace";
-import RegisterFace from "../pages/add-face/RegisterFace";
 import AddReminder from "../pages/add-event/AddReminder";
 import AddRequestLeave from "../pages/add-event/AddRequestLeave";
 import AddRequest from "../pages/add-event/AddRequest";
@@ -16,6 +14,9 @@ import ChangePassword from "../pages/account/ChangePassword"; //
 import AccountInformation from "../pages/account/AccountInformation"; //
 import GeneralSetting from "../pages/general-setting/GeneralSetting";
 import AdminDashboard from "../pages/admin/Dashboard"; //
+
+import AttendanceQRCode from "../pages/attendance/AttendanceQRCode";
+import AttendanceFace from "../pages/attendance/AttendanceFace";
 
 import VerifyOtp from "../pages/account/VerifyOtp"; //
 
@@ -61,8 +62,6 @@ const AppRoutes = () => {
             <Route path="/notifications/all" element={<ProtectedRoute><Notification /></ProtectedRoute>} />
             <Route path="/introduction" element={<ProtectedRoute><Introduction /></ProtectedRoute>} />
             <Route path="/to-do-list/today" element={<ProtectedRoute><ToDoList /></ProtectedRoute>} />
-            <Route path="attendance/add-face" element={<ProtectedRoute><AddFace /></ProtectedRoute>} />
-            <Route path="/add-face/register-face" element={<ProtectedRoute><RegisterFace /></ProtectedRoute>} />
             <Route path="/add-event/add-reminder" element={<ProtectedRoute><AddReminder /></ProtectedRoute>} />
             <Route path="/add-event/request-leave" element={<ProtectedRoute><AddRequestLeave /></ProtectedRoute>} />
             <Route path="/add-event/request-leave/request" element={<ProtectedRoute><AddRequest /></ProtectedRoute>} />
@@ -73,6 +72,8 @@ const AppRoutes = () => {
             <Route path="/attendance/attendance-history" element={<ProtectedRoute><AttendanceHistory /></ProtectedRoute>} />
             <Route path="/timetable" element={<ProtectedRoute><TimeTable /></ProtectedRoute>} />
             <Route path="/profile/*" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/attendance/attendance-qr" element={<ProtectedRoute><AttendanceQRCode /></ProtectedRoute>} />
+            <Route path="/attendance/add-face" element={<ProtectedRoute><AttendanceFace /></ProtectedRoute>} />
             <Route path="*" element={<ErrorPage />} />
 
             {/* Admin */}

@@ -1,14 +1,15 @@
-FROM ubuntu:latest
+FROM python:3.13.7-slim
 
-RUN apt-get update
-RUN apt-get install -y python3 python3-pip
-RUN pip3 install django
-RUN pip3 install flask
-RUN pip3 install flask_cors
-RUN pip3 install mysql-connector-python
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-COPY . /app
 WORKDIR /app
-EXPOSE 5000
-CMD ["python3", "app.py"]
+
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+COPY . .
+
+# CMD ["python manage.py runserver", "manage.py"]
+CMD ["gunicorn", "attend3d.wsgi:application", "--bind", "0.0.0.0:8000"]
 # End of Dockerfile

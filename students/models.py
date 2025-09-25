@@ -2,16 +2,18 @@ from django.db import models
 import random
 from accounts.models import Account
 from subjects.models import Subject, Semester
+from helper.generate_random_code import generate_random_code
 
-def generate_random_code():
+def student_random_code():
     length = random.randint(10, 20) 
     return ''.join(str(random.randint(0,9)) for _ in range(length))
 
 class Department(models.Model):
     department_id = models.BigAutoField(primary_key=True)
     department_name = models.CharField(max_length=255, unique=True)
-    department_code = models.CharField(max_length=20, default=generate_random_code, unique=True)
+    department_code = models.UUIDField(default=generate_random_code, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'departments'
@@ -25,9 +27,10 @@ class Department(models.Model):
 class Major(models.Model):
     major_id = models.BigAutoField(primary_key=True)
     major_name = models.CharField(max_length=255)
-    major_code = models.CharField(max_length=20, default=generate_random_code, unique=True)
+    major_code = models.UUIDField(default=generate_random_code, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    department = models.ForeignKey('students.Department', on_delete=models.CASCADE, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    department = models.ForeignKey('students.Department', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'majors'
@@ -42,19 +45,31 @@ class Major(models.Model):
         return self.major_name
 
 class Student(models.Model):
+    class Gender(models.TextChoices):
+        MALE = "M", "Male"
+        FEMALE = "F", "Female"
+        OTHER = "O", "Other"
+
+    class Status(models.TextChoices):
+        ACTIVE = "A", "Active"
+        INACTIVE = "I", "Inactive"
+        SUSPENDED = "S", "Suspended"
+
     student_id = models.BigAutoField(primary_key=True)
     student_code = models.CharField(max_length=20, default=generate_random_code, unique=True)
     fullname = models.CharField(max_length=255)
-    face_embedding = models.BinaryField(null=True)
+    face_embedding = models.BinaryField(null=True, blank=True)
     department = models.ForeignKey('students.Department', on_delete=models.CASCADE)
-    profile_attachments = models.TextField(null=True)
+    profile_attachments = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     account = models.OneToOneField(Account, on_delete=models.CASCADE)
-    gender = models.CharField(max_length=1)
+    gender = models.CharField(max_length=1, choices=Gender.choices)
     dob = models.DateField()
-    status = models.CharField(max_length=1)
-    is_graduated = models.CharField(max_length=1, default='0')
-    major = models.ForeignKey(Major, on_delete=models.CASCADE)
+    status = models.CharField(max_length=1, choices=Status.choices, default=Status.ACTIVE)
+    is_graduated = models.BooleanField(default=False)
+    major = models.ForeignKey("students.Major", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'students'
@@ -78,10 +93,8 @@ class StudentSubject(models.Model):
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
     registration_status = models.CharField(max_length=20, default='auto')
     created_at = models.DateTimeField(auto_now_add=True)
-    # registered_by_account = models.ForeignKey("accounts.Account", on_delete=models.CASCADE, null=True)
-    # Change
+    updated_at = models.DateTimeField(auto_now=True)
     subject_registration_request = models.ForeignKey("students.SubjectRegistrationRequest", on_delete=models.CASCADE, null=True)
-    # End change
 
     class Meta:
         db_table = 'student_subjects'
@@ -89,7 +102,6 @@ class StudentSubject(models.Model):
             models.Index(fields=['student_id']),
             models.Index(fields=['subject_id']),
             models.Index(fields=['semester_id']),
-            # models.Index(fields=['registered_by_account_id']),
             models.Index(fields=['subject_registration_request_id']),
         ]
         managed = True
@@ -101,6 +113,7 @@ class StudentSubject(models.Model):
 
 class Device(models.Model):
     device_id = models.BigAutoField(primary_key=True)
+    device_code = models.UUIDField(default=generate_random_code, unique=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     device_name = models.CharField(max_length=255)
     ip = models.CharField(max_length=100)
@@ -121,15 +134,18 @@ class Device(models.Model):
 
 class SubjectRegistrationRequest(models.Model):
     subject_registration_request_id = models.BigAutoField(primary_key=True)
+    subject_registration_request_code = models.UUIDField(default=generate_random_code, unique=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, null=True)
     reason = models.TextField(null=True)
     status = models.CharField(default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     reviewed_at = models.DateTimeField(auto_now=True)
     is_over_credit_limit = models.BooleanField(default=False)
     approved_by = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, null=True)
+    schedule = models.ForeignKey('classes.Schedule', on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = 'subject_registration_requests'
@@ -138,13 +154,14 @@ class SubjectRegistrationRequest(models.Model):
             models.Index(fields=['subject_id']),
             models.Index(fields=['semester_id']),
             models.Index(fields=['approved_by_id']),
+            models.Index(fields=['schedule_id']),
         ]
         managed = True
         verbose_name = 'Subject Registration Request'
         verbose_name_plural = 'Subject Registration Requests'
 
     def __str__(self):
-        return f"{self.student_id} - {self.subject_id}"
+        return f"{self.student_id} - {self.subject_id} - {self.semester_id}"
 
 class CreditLimit(models.Model):
     credit_limit_id = models.BigAutoField(primary_key=True)
@@ -165,4 +182,4 @@ class CreditLimit(models.Model):
         verbose_name_plural = 'Credit Limits'
 
     def __str__(self):
-        return f"{self.student_id} - {self.credit_limit}"
+        return f"{self.student.fullname} - {self.semester} ({self.min_credits}-{self.max_credits})"

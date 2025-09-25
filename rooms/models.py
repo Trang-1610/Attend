@@ -1,7 +1,9 @@
 from django.db import models
+from helper.generate_random_code import generate_random_code
 
 class Room(models.Model):
     room_id = models.BigAutoField(primary_key=True)
+    room_code = models.UUIDField(default=generate_random_code, unique=True)
     room_name = models.CharField(max_length=100)
     latitude = models.DecimalField(max_digits=10, decimal_places=5)
     longitude = models.DecimalField(max_digits=10, decimal_places=5)

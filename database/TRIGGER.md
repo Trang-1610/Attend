@@ -70,7 +70,8 @@ BEGIN
             semester_id,
             registration_status,
             subject_registration_request_id,
-            created_at
+            created_at,
+            updated_at
         )
         VALUES (
             NEW.student_id,
@@ -79,6 +80,7 @@ BEGIN
             NEW.semester_id,
             'auto',
             NEW.subject_registration_request_id,
+            NOW(),
             NOW()
         );
     END IF;
@@ -101,7 +103,7 @@ BEGIN
     -- Chỉ thực hiện khi status được update thành 'approved'
     IF NEW.status = 'approved' THEN
         INSERT INTO class_students(
-            class_id,
+            class_id_id,
             student_id,
             is_active,
             created_at,
@@ -109,7 +111,7 @@ BEGIN
             registered_by_account_id
         )
         SELECT
-            sc.class_id,                 -- Lấy class_id từ subject_classes
+            sc.class_id_id,                 -- Lấy class_id từ subject_classes
             NEW.student_id,
             '1' AS is_active,            -- Mặc định active
             NOW() AS created_at,

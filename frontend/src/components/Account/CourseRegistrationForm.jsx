@@ -248,7 +248,8 @@ export default function CourseRegistrationForm({
                 closable
                 onClose={handleDrawerClose}
                 open={drawerVisible}
-                height={400}
+                height={"auto"}
+                width={"100%"}
             >
                 {scheduleDetail ? (
                     <Table

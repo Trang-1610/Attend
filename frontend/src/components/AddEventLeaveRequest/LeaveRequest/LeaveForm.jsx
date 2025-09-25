@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button, DatePicker, Form, Input, Select, Upload, message } from 'antd';
-import { useWatch } from 'antd/es/form/Form';
 import { PlusOutlined } from '@ant-design/icons';
 import dayjs from "dayjs";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
@@ -9,53 +8,10 @@ dayjs.extend(isSameOrBefore);
 
 const { RangePicker } = DatePicker;
 
-export default function LeaveForm({ form, academicYears, semesters, subjects, leaveData, selectedSubject, loading }) {
-
-    const selectedAcademicYear = useWatch('academicYear', form);
-    const selectedSemester = useWatch('semester', form);
-    const filteredSubjects = subjects;
+export default function LeaveForm({ form, leaveData, loading, studentSubjects }) {
 
     return (
         <>
-            <Form.Item
-                label="Năm học"
-                rules={[{ required: true, message: 'Vui lòng chọn năm học!' }]}
-                name={'academicYear'}
-                className="mt-5"
-                hidden
-            >
-                <Select
-                    options={academicYears.map(item => ({
-                        label: `${item.academic_year_name}`,
-                        value: item.academic_year_id
-                    }))}
-                    placeholder="Chọn năm học"
-                    size="large"
-                    className="w-full custom-select"
-                />
-            </Form.Item>
-
-            <Form.Item
-                label="Học kỳ"
-                rules={[{ required: true, message: 'Vui lòng chọn học kỳ!' }]}
-                name={'semester'}
-                className="mt-5"
-                hidden
-            >
-                <Select
-                    options={semesters.map(item => ({
-                        label: item.semester_name,
-                        value: item.semester_id
-                    }))}
-                    placeholder={
-                        selectedAcademicYear ? "Chọn học kỳ" : "Vui lòng chọn năm học trước"
-                    }
-                    disabled={!selectedAcademicYear}
-                    size="large"
-                    className="w-full custom-select"
-                />
-            </Form.Item>
-
             <Form.Item
                 label="Tên môn học"
                 rules={[{ required: true, message: 'Vui lòng chọn môn học!' }]}
@@ -64,16 +20,10 @@ export default function LeaveForm({ form, academicYears, semesters, subjects, le
             >
                 <Select
                     allowClear
-                    options={filteredSubjects.map(item => ({
+                    options={studentSubjects.map(item => ({
                         label: `${item.subject_name}`,
                         value: item.subject_id
                     }))}
-                    placeholder={
-                        selectedSemester
-                            ? "Chọn môn học"
-                            : "Vui lòng chọn năm học trước"
-                    }
-                    disabled={!selectedSemester}
                     size="large"
                     className="w-full custom-select"
                     showSearch
@@ -185,7 +135,6 @@ export default function LeaveForm({ form, academicYears, semesters, subjects, le
             >
                 <RangePicker
                     showTime={{ format: 'HH:mm' }}
-                    disabled={!selectedSubject}
                     allowEmpty={[true, true]}
                     size="large"
                     format="HH:mm DD/MM/YYYY"

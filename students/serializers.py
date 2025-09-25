@@ -221,7 +221,6 @@ class StudentScheduleSerializer(serializers.Serializer):
     subject_name = serializers.CharField()
     class_id = serializers.IntegerField()
     class_name = serializers.CharField()
-    subject_class_id = serializers.IntegerField()
     lecturer_name = serializers.CharField(allow_null=True)
     schedule_id = serializers.IntegerField()
     day_of_week = serializers.IntegerField()
@@ -235,8 +234,7 @@ class StudentScheduleSerializer(serializers.Serializer):
     longitude = serializers.DecimalField(max_digits=10, decimal_places=5)
     lesson_type = serializers.CharField()
     repeat_weekly = serializers.CharField()
-    status_schedule = serializers.CharField()
-    semeter_start_date = serializers.DateField()
+    semester_start_date = serializers.DateField()
     semester_end_date = serializers.DateField()
 # ==================================================
 # Get data student for leave request function

@@ -1,15 +1,16 @@
 from django.db import models
 from accounts.models import Account
 from students.models import Department
+from helper.generate_random_code import generate_random_code
 
 class Staff(models.Model):
     staff_id = models.BigAutoField(primary_key=True)
+    staff_code = models.UUIDField(default=generate_random_code, unique=True)
     fullname = models.CharField(max_length=255)
     account = models.OneToOneField('accounts.Account', on_delete=models.CASCADE)
     department = models.ForeignKey('students.Department', on_delete=models.CASCADE)
     gender = models.CharField(max_length=1)
     dob = models.DateField()
-    # avatar_url = models.TextField(null=True)
     phone_number = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -29,6 +30,7 @@ class Staff(models.Model):
     
 class ImportLog(models.Model):
     import_log_id = models.BigAutoField(primary_key=True)
+    import_log_code = models.UUIDField(default=generate_random_code, unique=True)
     staff = models.ForeignKey("staffs.Staff", on_delete=models.CASCADE)
     file_name = models.CharField(max_length=255)
     import_type = models.CharField(max_length=100)

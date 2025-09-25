@@ -30,10 +30,6 @@ const LoginFormItems = () => (
             name="password"
             rules={[
                 { required: true, message: "Vui lòng nhập mật khẩu!" },
-                {
-                    pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/,
-                    message: "Mật khẩu phải chứa cả chữ và số!",
-                },
             ]}
         >
             <Input.Password

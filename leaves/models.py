@@ -2,7 +2,7 @@ from django.db import models
 from students.models import Student
 from subjects.models import Subject
 from lecturers.models import Lecturer
-
+from helper.generate_random_code import generate_random_code
 
 class LeaveStatus(models.TextChoices):
     PENDING = "P", "Pending"
@@ -12,6 +12,7 @@ class LeaveStatus(models.TextChoices):
 
 class LeaveRequest(models.Model):
     leave_request_id = models.BigAutoField(primary_key=True)
+    leave_request_code = models.UUIDField(default=generate_random_code, unique=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
 
@@ -46,19 +47,6 @@ class LeaveRequest(models.Model):
         related_name="targeted_leave_requests" 
     )
 
-    academic_year = models.ForeignKey(
-        "subjects.AcademicYear",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-
-    semester = models.ForeignKey(
-        "subjects.Semester",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -66,8 +54,6 @@ class LeaveRequest(models.Model):
         db_table = 'leave_requests'
         indexes = [
             models.Index(fields=['student']),
-            models.Index(fields=['subject']),
-            models.Index(fields=['approved_by']),
         ]
         verbose_name = 'Leave Request'
         verbose_name_plural = 'Leave Requests'

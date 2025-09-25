@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Notification, Reminder
+from accounts.models import Account
+from subjects.serializers import SubjectLeaveRequestSerializer
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,39 +12,34 @@ class NotificationSerializer(serializers.ModelSerializer):
 # ==================================================
 class ReminderSerializer(serializers.Serializer):
     student_id = serializers.IntegerField()
-    fullname = serializers.CharField()
+    student_name = serializers.CharField()
     student_code = serializers.CharField()
+
     department_name = serializers.CharField(allow_null=True)
 
-    class_id = serializers.IntegerField()
-    class_name = serializers.CharField()
     subject_id = serializers.IntegerField()
     subject_name = serializers.CharField()
-
+    class_id = serializers.IntegerField()
+    class_name = serializers.CharField()
     lecturer_name = serializers.CharField(allow_null=True)
-    lecturer_id = serializers.IntegerField(allow_null=True)
-
-    academic_year_id = serializers.IntegerField()
-    academic_year_name = serializers.CharField()
-    semester_id = serializers.IntegerField()
-    semester_name = serializers.CharField()
-    start_date_semester = serializers.DateField()
-    end_date_semester = serializers.DateField()
-
     schedule_id = serializers.IntegerField()
     day_of_week = serializers.IntegerField()
-    room_id = serializers.IntegerField()
-    room_name = serializers.CharField()
-    slot_id = serializers.IntegerField()
     slot_name = serializers.CharField()
-    start_time = serializers.TimeField()
-    end_time = serializers.TimeField()
-    max_leave_days = serializers.IntegerField()
+    lesson_start = serializers.TimeField()
+    lesson_end = serializers.TimeField()
+    occurrence_start = serializers.DateTimeField()
+    occurrence_end = serializers.DateTimeField()
+    room_name = serializers.CharField()
+    latitude = serializers.DecimalField(max_digits=10, decimal_places=5)
+    longitude = serializers.DecimalField(max_digits=10, decimal_places=5)
+    lesson_type = serializers.CharField()
+    repeat_weekly = serializers.CharField()
+    semester_start_date = serializers.DateField()
+    semester_end_date = serializers.DateField()
 # ==================================================
 # Save data for adding reminder
 # ==================================================
 class SaveReminderSerializer(serializers.ModelSerializer):
-    student_account = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Reminder
@@ -53,8 +50,26 @@ class SaveReminderSerializer(serializers.ModelSerializer):
             'subject', 'student'
         ]
 
-    def create(self, validated_data):
-        account_id = validated_data.pop("student_account")
-        student = Student.objects.get(account_id=account_id)
-        validated_data["student"] = student
-        return super().create(validated_data)
+        read_only_fields = ['student']
+# ==================================================
+# Get all reminders of a student
+# ==================================================
+class ReminderListSerializer(serializers.ModelSerializer):
+    student = serializers.PrimaryKeyRelatedField(queryset=Account.objects.all())
+    subject = SubjectLeaveRequestSerializer(read_only=True)
+    class Meta:
+        model = Reminder
+        fields = [
+            'reminder_id', 'title', 'content', 'start_date', 'end_date', 'time_reminder', 'status_reminder', 'email_notification',
+            'student', 'subject'
+        ]
+# ==================================================
+# Edit a reminder of a student
+# ==================================================
+class EditReminderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reminder
+        fields = [
+            'reminder_id', 'title', 'content', 'start_date', 'end_date', 'time_reminder', 'status_reminder',
+            'student', 'subject'
+        ]

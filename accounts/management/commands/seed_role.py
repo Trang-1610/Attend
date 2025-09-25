@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         roles = ['admin', 'lecturer', 'student', 'superadmin']
         for role in roles:
-            obj, created = Role.objects.get_or_create(role_name=role)
+            obj, created = Role.objects.get_or_create(name=role)
             if created:
                 self.stdout.write(self.style.SUCCESS(f'Created role {role}'))
             else:

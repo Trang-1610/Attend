@@ -1,26 +1,20 @@
 from django.db import models
-import random
-import string
-from students.models import Department
-from subjects.models import AcademicYear
-from students.models import Student
-from subjects.models import Subject, Shift
+from students.models import Department, Student
+from subjects.models import AcademicYear, Subject, Shift
 from rooms.models import Room
 from lecturers.models import Lecturer
+from helper.generate_random_code import generate_random_code
 
-
-def generate_random_code():
-    length = random.randint(10, 20) 
-    return ''.join(str(random.randint(0,9)) for _ in range(length))
 
 class Class(models.Model):
     class_id = models.BigAutoField(primary_key=True)
     class_name = models.CharField(max_length=100)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
     status = models.CharField(max_length=1, default='1')
-    class_code = models.CharField(max_length=20, default=generate_random_code, unique=True)
+    class_code = models.UUIDField(default=generate_random_code, unique=True)
 
     class Meta:
         db_table = 'classes'
@@ -35,6 +29,7 @@ class Class(models.Model):
     def __str__(self):
         return f"{self.class_name} ({self.class_code})"
 
+
 class ClassStudent(models.Model):
     class_student_id = models.BigAutoField(primary_key=True)
     class_id = models.ForeignKey(
@@ -43,7 +38,8 @@ class ClassStudent(models.Model):
     student = models.ForeignKey(
         Student, on_delete=models.CASCADE, related_name='class_students'
     )
-    is_active = models.CharField(max_length=1, default='0')
+    # changed to BooleanField for clarity
+    is_active = models.BooleanField(default=False)  # was CharField with '0'/'1'
     created_at = models.DateTimeField(auto_now_add=True)
     registration_status = models.CharField(max_length=20, default='auto')
     registered_by_account = models.ForeignKey(
@@ -61,14 +57,18 @@ class ClassStudent(models.Model):
         verbose_name_plural = 'Class Students'
 
     def __str__(self):
-        return f"{self.student} in {self.school_class}"
+        # fixed: wrong attribute name (school_class -> class_id)
+        return f"{self.student} in {self.class_id.class_name}"
+
 
 class Schedule(models.Model):
     schedule_id = models.BigAutoField(primary_key=True)
+    schedule_code = models.UUIDField(default=generate_random_code, unique=True)
     class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
-    start_time = models.DateTimeField(auto_now_add=False)
-    end_time = models.DateTimeField(auto_now_add=False)
-    repeat_weekly = models.CharField(max_length=1)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    # changed to BooleanField for clarity
+    repeat_weekly = models.BooleanField(default=False)  # was CharField with '0'/'1'
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     subject_id = models.ForeignKey(Subject, on_delete=models.CASCADE)
@@ -93,4 +93,4 @@ class Schedule(models.Model):
         verbose_name_plural = 'Schedules'
 
     def __str__(self):
-        return f"{self.school_class} - {self.subject} ({self.start_time.strftime('%Y-%m-%d %H:%M')})"
+        return f"{self.class_id.class_name} - {self.subject_id} ({self.start_time.strftime('%Y-%m-%d %H:%M')})"

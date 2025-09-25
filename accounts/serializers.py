@@ -52,17 +52,24 @@ class AccountSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        role = validated_data.get('role')
+        role = validated_data.pop('role', None)
         
-        if role.role_id == 3:
-            validated_data['user_type'] = 'student'
-        elif role.role_id == 2:
-            validated_data['user_type'] = 'lecture'
+        if role.name.lower() == "student":
+            validated_data['user_type'] = Account.UserType.STUDENT
+        elif role.name.lower() == "teacher":
+            validated_data['user_type'] = Account.UserType.TEACHER
+        elif role.name.lower() == "staff":
+            validated_data['user_type'] = Account.UserType.STAFF
         else:
-            validated_data['user_type'] = 'admin'
+            validated_data['user_type'] = Account.UserType.ADMIN
 
         validated_data['password'] = make_password(validated_data['password'])
-        return super().create(validated_data)
+        account = super().create(validated_data)
+
+        if role:
+            account.groups.add(role)
+
+        return account
 # End signup
 
 # Login

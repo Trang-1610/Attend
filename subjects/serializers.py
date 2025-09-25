@@ -88,3 +88,10 @@ class SubjectLeaveRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
         fields = ['subject_id', 'subject_name']
+# ==================================================
+# Get all subject of student
+# ==================================================
+class StudentSubjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = ['subject_id', 'subject_name']

@@ -47,8 +47,9 @@ export default function UserForm({ form }) {
             >
                 <Radio.Group
                     options={[
-                        { value: 1, label: "Nam" },
-                        { value: 2, label: "Nữ" },
+                        { value: 'M', label: "Nam" },
+                        { value: 'F', label: "Nữ" },
+                        { value: 'O', label: "Khác" },
                     ]}
                 />
             </Form.Item>
@@ -72,9 +73,9 @@ export default function UserForm({ form }) {
                 preserve={true}
             >
                 <DatePicker
-                    format="DD/MM/YYYY"
+                    format="YYYY/MM/DD"
                     size="large"
-                    placeholder="DD/MM/YYYY"
+                    placeholder="YYYY/MM/DD"
                     className="w-full"
                     disabledDate={(current) => current && current > dayjs()}
                     style={{ borderWidth: 1.5, boxShadow: "none" }}

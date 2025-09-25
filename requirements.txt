@@ -18,6 +18,8 @@ daphne==4.2.0
 Django==5.2.3
 django-cors-headers==4.7.0
 django-crontab==0.7.1
+django-crum==0.7.9
+django-filter==25.1
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 docx2pdf==0.1.8
@@ -30,6 +32,7 @@ incremental==24.7.2
 Jinja2==3.1.6
 lxml==6.0.1
 mammoth==1.10.0
+Markdown==3.9
 MarkupSafe==3.0.2
 msgpack==1.1.1
 pillow==11.2.1
@@ -60,3 +63,5 @@ weasyprint==66.0
 webencodings==0.5.1
 zope.interface==7.2
 zopfli==0.2.3.post1
+gunicorn
+psycopg2-binary

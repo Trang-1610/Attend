@@ -78,6 +78,7 @@ MIDDLEWARE = [
     # 
     "attend3d.middleware.thread_local.ThreadLocalMiddleware",
     "audit.middleware.AuditLogMiddleware",
+    'crum.CurrentRequestUserMiddleware',
 ]
 
 ROOT_URLCONF = 'attend3d.urls'
@@ -123,13 +124,23 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'attend3d',
+        'NAME': 'attendance_management_db',
         'USER': 'postgres',
         'PASSWORD': '1234',
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv("DB_NAME"),
+#         'USER': os.getenv("DB_USER"),
+#         'PASSWORD': os.getenv("DB_PASSWORD"),
+#         'HOST': os.getenv("DB_HOST", "localhost"),
+#         'PORT': os.getenv("DB_PORT", "5432"),
+#     }
+# }
 
 
 # Password validation

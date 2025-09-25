@@ -1,0 +1,1 @@
+from accounts.utils.serializers import serialize_instance

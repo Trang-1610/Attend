@@ -103,6 +103,7 @@ Create seed commands similar to Laravel for generating sample data:
 
 ```bash
 python manage.py seed_role
+python manage.py seed_permissions
 python manage.py seed_room
 python manage.py seed_department
 python manage.py seed_major
@@ -112,7 +113,7 @@ python manage.py seed_class
 python manage.py seed_subject
 python manage.py seed_shift
 python manage.py seed_lesson_slot
-python manage.py seed_schedule
+python manage.py seed_schedule # When system have lecturer's accounts
 ```
 
 **Note:**  

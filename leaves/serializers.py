@@ -19,7 +19,7 @@ from lecturers.models import Lecturer
 # ==================================================
 class LeaveRequestSerializer(serializers.Serializer):
     student_id = serializers.IntegerField()
-    fullname = serializers.CharField()
+    student_name = serializers.CharField()
     student_code = serializers.CharField()
     department_name = serializers.CharField(allow_null=True)
 
@@ -33,10 +33,11 @@ class LeaveRequestSerializer(serializers.Serializer):
 
     academic_year_id = serializers.IntegerField()
     academic_year_name = serializers.CharField()
+    
     semester_id = serializers.IntegerField()
     semester_name = serializers.CharField()
-    start_date_semester = serializers.DateField()
-    end_date_semester = serializers.DateField()
+    semester_start_date = serializers.DateField()
+    semester_end_date = serializers.DateField()
 
     schedule_id = serializers.IntegerField()
     day_of_week = serializers.IntegerField()
@@ -69,8 +70,6 @@ class SaveLeaveRequestSerializer(serializers.ModelSerializer):
             "attachment_url", 
             "approved_by",
             "reviewed_at",
-            "academic_year",
-            "semester",
             "leave_data",
             "to_target",
         ]
@@ -92,12 +91,12 @@ class SaveLeaveRequestSerializer(serializers.ModelSerializer):
                 "student_code": leave_data.get("student_code", leave_request.student.student_code),
                 "class_name": leave_data.get("class_name", ""),
                 "department_name": leave_data.get("department_name", ""),
-                "academic_year": leave_data.get("academic_year_name", ""),
-                "semester": leave_data.get("semester_name", ""),
                 "subject_name": leave_data.get("subject_name", leave_request.subject.subject_name),
+                "semester": leave_data.get("semester_name", ""),
+                "academic_year": leave_data.get("academic_year_name", ""),
                 "lecturer_name": leave_data.get("lecturer_name", ""),
-                "from_date": leave_request.from_date.strftime("%d/%m/%Y %H:%M"),
-                "to_date": leave_request.to_date.strftime("%d/%m/%Y %H:%M"),
+                "from_date": leave_request.from_date.strftime("%d/%m/%Y"), # %H:%M
+                "to_date": leave_request.to_date.strftime("%d/%m/%Y"), # %H:%M
                 "reason": leave_request.reason,
                 "today": {
                     "day": leave_request.from_date.day,
@@ -111,12 +110,12 @@ class SaveLeaveRequestSerializer(serializers.ModelSerializer):
                 "student_code": leave_request.student.student_code,
                 "class_name": "",
                 "department_name": "",
+                "subject_name": leave_request.subject.subject_name,
                 "academic_year": getattr(leave_request.academic_year, "academic_year_name", ""),
                 "semester": getattr(leave_request.semester, "semester_name", ""),
-                "subject_name": leave_request.subject.subject_name,
                 "lecturer_name": getattr(leave_request.subject.lecturer, "lecturer_name", ""),
-                "from_date": leave_request.from_date.strftime("%d/%m/%Y %H:%M"),
-                "to_date": leave_request.to_date.strftime("%d/%m/%Y %H:%M"),
+                "from_date": leave_request.from_date.strftime("%d/%m/%Y"), # %H:%M
+                "to_date": leave_request.to_date.strftime("%d/%m/%Y"), # %H:%M
                 "reason": leave_request.reason,
                 "today": {
                     "day": leave_request.from_date.day,

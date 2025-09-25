@@ -1,11 +1,24 @@
 from django.db import models
 from accounts.models import Account
 from subjects.models import Subject
-# from subjects.models import AcademicYear
 from students.models import Student
+from helper.generate_random_code import generate_random_code
 
+# ==================================================
+# SET UP STATUS CHOICES
+# ==================================================
+class StatusChoice(models.TextChoices):
+    PENDING = "P", "Pending"
+    SENDED = "S", "Sended"
+    ERROR = "E", "Error"
+    SUCCESS = "U", "Success"
+
+# ==================================================
+# NOTIFICATION MODEL
+# ==================================================
 class Notification(models.Model):
     notification_id = models.BigAutoField(primary_key=True)
+    notification_code = models.UUIDField(default=generate_random_code, unique=True)
     title = models.CharField(max_length=255)
     content = models.TextField()
     created_by = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='notifications_created')
@@ -29,16 +42,57 @@ class Notification(models.Model):
     def __str__(self):
         return self.title
 
+# ==================================================
+# REMINDER MODEL
+# ==================================================
 class Reminder(models.Model):
     reminder_id = models.BigAutoField(primary_key=True)
+    reminder_code = models.UUIDField(default=generate_random_code, unique=True)
     title = models.CharField(max_length=255)
     content = models.TextField()
-    start_date = models.DateTimeField(auto_now_add=True)
-    end_date = models.DateTimeField(auto_now_add=True)
-    email_notification = models.CharField(max_length=1, default='1')
-    time_reminder = models.TimeField(auto_now_add=False, default='30:00:00')
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    email_notification = models.CharField(
+        max_length=1, 
+        choices=StatusChoice.choices, 
+        default=StatusChoice.PENDING
+    )
+    status_send_email = models.CharField(
+        max_length=1, 
+        choices=StatusChoice.choices, 
+        default=StatusChoice.PENDING
+    )
+    sms_notification = models.CharField(
+        max_length=1, 
+        choices=StatusChoice.choices, 
+        default=StatusChoice.SENDED
+    )
+    status_send_sms = models.CharField(
+        max_length=1, 
+        choices=StatusChoice.choices, 
+        default=StatusChoice.SENDED
+    )
+    application_notification = models.CharField(
+        max_length=1,
+        choices=StatusChoice.choices,
+        default=StatusChoice.PENDING,
+        null=True,
+        blank=True
+    )
+    status_send_application = models.CharField(
+        max_length=1, 
+        choices=StatusChoice.choices, 
+        default=StatusChoice.PENDING,
+        null=True,
+        blank=True
+    )
+    time_reminder = models.TimeField(auto_now_add=False, default='00:30:00')
+    status_reminder = models.CharField(
+        max_length=1,
+        choices=StatusChoice.choices,
+        default=StatusChoice.PENDING
+    )
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    # academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -47,7 +101,6 @@ class Reminder(models.Model):
         db_table = 'reminders'
         indexes = [
             models.Index(fields=['subject_id']),
-            # models.Index(fields=['academic_year_id']),
             models.Index(fields=['student_id']),
         ]
         managed = True

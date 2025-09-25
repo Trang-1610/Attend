@@ -21,9 +21,9 @@ export default function Header() {
         const path = location.pathname;
         if (path === "/") setSelectedKeys(["home"]);
         else if (path.startsWith("/timetable")) setSelectedKeys(["timetable"]);
-        else if (path.startsWith("/add-face")) setSelectedKeys(["add-face"]);
+        else if (path.startsWith("/attendance/add-face")) setSelectedKeys(["add-face"]);
         else if (path.startsWith("/general-setting")) setSelectedKeys(["general-setting"]);
-        else if (path.startsWith("/attendance-statistics")) setSelectedKeys(["statistic"]);
+        else if (path.startsWith("/attendance/statistics")) setSelectedKeys(["statistic"]);
         else if (path.startsWith("/contact")) setSelectedKeys(["contact"]);
         else if (path.startsWith("/profile")) setSelectedKeys(["profile"]);
         else if (path.startsWith("/add-event/add-reminder")) setSelectedKeys(["add-reminder"]);
@@ -111,7 +111,7 @@ export default function Header() {
                     },
                     {
                         key: "add-face",
-                        label: <a href="attendance/add-face">{t("add_face")}</a>,
+                        label: <a href="/attendance/add-face">{t("add_face")}</a>,
                         icon: <ScanOutlined />,
                     },
                     {

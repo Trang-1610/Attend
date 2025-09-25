@@ -19,6 +19,10 @@ code {
 .custom-select.ant-select-focused .ant-select-selector {
   box-shadow: none !important;
 }
+.ant-picker {
+  border-width: 1.5px !important;
+  box-shadow: none !important;
+}
 
 .ant-typography,
 .ant-breadcrumb,

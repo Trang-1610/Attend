@@ -2,17 +2,25 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Subject, AcademicYear, Semester
-from .serializers import SubjectSerializer, AcademicYearSerializer, SemesterSerializer, SemesterByAcademicSerializer, DisplaySubjectForRegistion
+from .serializers import (
+    SubjectSerializer, AcademicYearSerializer, SemesterSerializer, 
+    SemesterByAcademicSerializer, DisplaySubjectForRegistion, StudentSubjectSerializer
+)
 from rest_framework import generics
 from django.utils import timezone
 from datetime import datetime
 
+# ==================================================
+# Get all subjects
+# ==================================================
 class SubjectListAPIView(APIView):
     def get(self, request):
         subjects = Subject.objects.select_related('academic_year', 'department').all()
         serializer = SubjectSerializer(subjects, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+# ==================================================
+# Get nearest academic year
+# ==================================================
 class AcademicYearListAPIView(generics.ListAPIView):
     serializer_class = AcademicYearSerializer
 
@@ -40,7 +48,9 @@ class SemesterListAPIView(APIView):
         semesters = Semester.objects.select_related('academic_year').all()
         serializer = SemesterSerializer(semesters, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+# ==================================================
+# Get nearest semester
+# ==================================================
 class SemesterByAcademicAPIView(APIView):
     def get(self, request, academic_year_id):
         today = timezone.now().date()
@@ -65,8 +75,9 @@ class SemesterByAcademicAPIView(APIView):
 
         serializer = SemesterByAcademicSerializer(nearest_semester)
         return Response([serializer.data], status=status.HTTP_200_OK)
-
-# display subject
+# ==================================================
+# Display subject for registion view
+# ==================================================
 class DisplaySubjectForRegistionAPIView(APIView):
     def get(self, request, academic_year_id=None):
         subjects = Subject.objects.select_related('academic_year', 'department') \
@@ -76,4 +87,17 @@ class DisplaySubjectForRegistionAPIView(APIView):
             subjects = subjects.filter(academic_year_id=academic_year_id)
 
         serializer = DisplaySubjectForRegistion(subjects, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+# ==================================================
+# Get all subject of student view
+# ==================================================
+class StudentSubjectView(APIView):
+    def get(self, request, account_id):
+        subjects = Subject.objects.filter(
+            subjectregistrationrequest__status="approved",
+            status="1",
+            subjectregistrationrequest__student__account__account_id=account_id
+        ).distinct()  # avoid duplicates if any due to joins
+
+        serializer = StudentSubjectSerializer(subjects, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

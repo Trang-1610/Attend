@@ -44,12 +44,16 @@ from django.contrib.auth import login
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth import get_user_model
+from helper.get_client_ip import get_client_ip
+from rest_framework.authentication import BasicAuthentication
+from django.contrib.auth.models import Group
 
 @ensure_csrf_cookie
 def get_csrf(request):
     return JsonResponse({'detail': 'CSRF cookie set'})
 
 class RefreshTokenView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -89,14 +93,6 @@ class RefreshTokenView(APIView):
 
 def generate_password(length=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -177,11 +173,8 @@ def verify_otp(request):
                 'account_id': account.account_id,
                 'email': account.email,
                 'phone_number': account.phone_number,
-                'role_id': getattr(account.role, 'role_id', None),
                 'user_type': account.user_type,
             },
-            # "refresh_token": str(refresh),
-            # "access_token": access_token
         }, status=201)
     else:
         return Response({'error': serializer.errors}, status=400)
@@ -211,7 +204,7 @@ def update_avatar(request, account_id):
     else:
         header, data = avatar_base64.split(',')
         ext = header.split('/')[1].split(';')[0]
-        filename = f"avatar_{random_digits}_{timestamp}.{ext}"
+        filename = f"{random_digits}_{random_digits}_{timestamp}.{ext}"
         filepath = os.path.join(avatar_dir, filename)
         with open(filepath, 'wb') as f:
             f.write(base64.b64decode(data))
@@ -231,6 +224,7 @@ def update_avatar(request, account_id):
 
 # Login
 class LoginView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -254,8 +248,8 @@ class LoginView(APIView):
                 "user": {
                     "message": "Đăng nhập thành công",
                     "account_id": user.account_id,
-                    "role": user.role.role_name,
-                    "avatar": request.build_absolute_uri(user.avatar_url.url) if user.avatar_url else None
+                    "role": user.groups.first().name if user.groups.exists() else None,
+                    "avatar": request.build_absolute_uri(user.avatar.url) if user.avatar else None,
                 }
             })
 
@@ -295,7 +289,7 @@ class MeView(APIView):
         user = request.user
         return Response({
             "account_id": user.account_id,
-            "avatar": request.build_absolute_uri(user.avatar_url.url) if user.avatar_url else None,
+            "avatar": request.build_absolute_uri(user.avatar.url) if user.avatar else None,
         })
 # End me
 
@@ -486,7 +480,7 @@ def bulk_create_students(request):
 @permission_classes([IsAdminUser]) # is_staff = True
 def bulk_create_lecturers(request):
     lecturers = request.data.get("lecturers", [])
-    lecturer_role = Role.objects.get(role_id=2)
+    lecturer_role = Role.objects.get(id=2)
     created = []
 
     for lecturer in lecturers:
@@ -520,8 +514,7 @@ def bulk_create_lecturers(request):
             email=email,
             phone_number=phone,
             password=hashed_password,
-            role=lecturer_role,
-            user_type='lecturer',
+            user_type=Account.UserType.TEACHER,
         )
 
         Lecturer.objects.create(
@@ -530,49 +523,10 @@ def bulk_create_lecturers(request):
             dob=dob,
             account=account,
             department=department,
-            # status='1'
-        )
-        
-        Notification.objects.create(
-            title=f"Bạn hàng tạo tài khoản cho giảng viên {name}",
-            content=f"Giảng viên {name} hàng có tài khoản trong hệ thống.",
-            created_by=request.user,
-            to_target=account
-        )
-        
-        AuditLog.objects.create(
-            operation='C',
-            old_data={},
-            new_data={
-                "email": email,
-                "phone_number": phone,
-            },
-            ip_address=get_client_ip(request),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-            changed_by=request.user,
-            record_id=str(account.pk),
-            entity_id=str(account.pk),
-            entity_name='Account',
-            action_description=f"Tạo tài khoản giảng viên: {name}"
         )
 
-        AuditLog.objects.create(
-            operation='C',
-            old_data={},
-            new_data={
-                "fullname": name,
-                "gender": gender,
-                "dob": dob,
-                "department": department.department_name,
-            },
-            ip_address=get_client_ip(request),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-            changed_by=request.user,
-            record_id=str(account.pk),
-            entity_id=str(account.pk),
-            entity_name='Lecturer',
-            action_description=f"Tạo hồ sơ giảng viên: {name}"
-        )
+        lecturer_group = Group.objects.get(name="lecturer")  
+        account.groups.add(lecturer_group)
 
         html_content = render_to_string("account/create_multiple_account.html", {
             "name": name,

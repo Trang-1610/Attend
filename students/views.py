@@ -11,7 +11,7 @@ from .models import Department, Major
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from students.serializers import StudentGetListSerializer
-from .models import Student, StudentSubject
+from .models import Student, StudentSubject, SubjectRegistrationRequest
 from rest_framework.decorators import api_view, permission_classes
 from notifications.models import Notification
 from audit.models import AuditLog
@@ -277,7 +277,13 @@ class SubjectRegistrationRequestCreateView(generics.CreateAPIView):
                 )
 
         # 3. If no error, save
-        serializer.save(student=student)
+        SubjectRegistrationRequest.objects.create(
+                student=student,
+                subject=subject,
+                semester=semester,
+                schedule=schedule,
+                approved_by=None
+            )
 
 # ==================================================
 # View submitted course registration requests
@@ -306,88 +312,78 @@ class StudentScheduleView(APIView):
         query = """
         WITH week AS (
             SELECT date_trunc('week', CURRENT_DATE)::date AS week_start
-        ),
-
-        student_classes AS (
-            SELECT cs.class_id_id AS class_id
-            FROM class_students cs
-            WHERE cs.student_id = %s
-            AND cs.is_active = '1'
-        ),
-
-        student_subjects_sem AS (
-            SELECT ss.subject_id, ss.semester_id, semes.semester_name, semes.start_date, semes.end_date
-            FROM student_subjects ss JOIN semesters semes ON ss.semester_id = semes.semester_id
-            WHERE ss.student_id = %s
-        ),
-
-        subject_classes_filtered AS (
-            SELECT sc.subject_class_id, sc.subject_id, sc.class_id_id AS class_id, sc.lecturer_id
-            FROM subject_classes sc
-            WHERE sc.class_id_id IN (SELECT class_id FROM student_classes)
-        ),
-
-        schedules_filtered AS (
-            SELECT s.*, ls.slot_name, r.room_name, l.fullname AS lecturer_name
-            FROM schedules s
-            JOIN lesson_slots ls ON s.slot_id = ls.slot_id
-            JOIN rooms r ON s.room_id = r.room_id
-            JOIN subjects AS subj ON subj.subject_id = s.subject_id_id
-            JOIN lecturer_subjects AS lsubj ON lsubj.subject_id = subj.subject_id
-            LEFT JOIN lecturers l ON l.lecturer_id = lsubj.lecturer_id
-            WHERE s.class_id_id IN (SELECT class_id FROM student_classes) AND s.status = '1'
         )
-
-        SELECT DISTINCT ON (s.schedule_id)
+        SELECT DISTINCT ON (sch.schedule_id)
             st.student_id,
+            st.student_code,
             st.fullname AS student_name,
-            subj.subject_id,
-            subj.subject_name,
-            c.class_id,
-            c.class_name,
-            ss.start_date AS semeter_start_date,
-            ss.end_date AS semester_end_date,
-            sc.subject_class_id,
-            s.status AS status_schedule,
-            s.repeat_weekly,
-            s.lecturer_name,
-            s.schedule_id,
-            s.day_of_week,
-            s.slot_name,
-            s.start_time::time AS lesson_start,
-            s.end_time::time AS lesson_end,
+            sub.subject_id,
+            sub.subject_name,
+            cl.class_id,
+            cl.class_name,
+            se.start_date AS semester_start_date,
+            se.end_date AS semester_end_date,
+            l.lecturer_id,
+            l.fullname AS lecturer_name,
+            sch.schedule_id,
+            sch.day_of_week,
+            sch.repeat_weekly,
+            sch.lesson_type,
+            sch.latitude,
+            sch.longitude,
+            ls.slot_id,
+            ls.slot_name,
+            r.room_id,
+            r.room_name,
+            r.capacity,
+            sh.shift_id,
+            sh.shift_name,
+            sh.start_time AS shift_start_time,
+            sh.end_time AS shift_end_time,
+            ss.max_leave_days,
+            sch.start_time::time AS lesson_start,
+            sch.end_time::time AS lesson_end,
             CASE 
-                WHEN s.repeat_weekly = '1' THEN
+                WHEN sch.repeat_weekly = '1' THEN
                     w.week_start::timestamp 
-                    + ((COALESCE(s.day_of_week, EXTRACT(ISODOW FROM s.start_time)::int) - 1) || ' day')::interval
-                    + s.start_time::time
-                ELSE s.start_time
+                    + ((COALESCE(sch.day_of_week, EXTRACT(ISODOW FROM sch.start_time)::int) - 1) || ' day')::interval
+                    + sch.start_time::time
+                ELSE sch.start_time
             END AS occurrence_start,
-
             CASE 
-                WHEN s.repeat_weekly = '1' THEN
+                WHEN sch.repeat_weekly = '1' THEN
                     w.week_start::timestamp 
-                    + ((COALESCE(s.day_of_week, EXTRACT(ISODOW FROM s.start_time)::int) - 1) || ' day')::interval
-                    + s.end_time::time
-                ELSE s.end_time
-            END AS occurrence_end,
-            s.room_name,
-            s.latitude,
-            s.longitude,
-            s.lesson_type
-        FROM student_subjects_sem ss
-        JOIN students st ON st.student_id = %s AND st.status = '1'
-        JOIN subjects subj ON ss.subject_id = subj.subject_id
-        JOIN subject_classes_filtered sc ON sc.class_id = ANY(SELECT class_id FROM student_classes)
-        JOIN classes c ON c.class_id = sc.class_id
-        JOIN schedules_filtered s ON s.class_id_id = sc.class_id
+                    + ((COALESCE(sch.day_of_week, EXTRACT(ISODOW FROM sch.start_time)::int) - 1) || ' day')::interval
+                    + sch.end_time::time
+                ELSE sch.end_time
+            END AS occurrence_end
+        FROM schedules AS sch
+        JOIN subjects AS sub ON sub.subject_id = sch.subject_id_id
+        JOIN classes AS cl ON cl.class_id = sch.class_id_id
+        JOIN subject_registration_requests AS srr ON srr.schedule_id = sch.schedule_id
+        JOIN lesson_slots AS ls ON ls.slot_id = sch.slot_id
+        JOIN shifts AS sh ON sh.shift_id = ls.shift_id_id
+        JOIN rooms AS r ON r.room_id = sch.room_id
+        JOIN students AS st ON st.student_id = srr.student_id
+        JOIN semesters AS se ON se.semester_id = srr.semester_id
+        JOIN lecturer_subjects AS lsub ON lsub.subject_id = srr.subject_id
+        JOIN lecturers AS l ON l.lecturer_id = lsub.lecturer_id
+        JOIN student_subjects AS ss ON ss.subject_registration_request_id = srr.subject_registration_request_id
         CROSS JOIN week w
-        ORDER BY s.schedule_id, occurrence_start;
+        WHERE srr.status = 'approved'
+        AND srr.student_id = %s
+        AND sch.status = '1'
+        AND sh.status = '1'
+        AND sub.status = '1'
+        AND cl.status = '1'
+        AND r.status = '1'
+        AND se.status = '1'
+        ORDER BY sch.schedule_id, occurrence_start;
         """
 
         # 2. Query
         with connection.cursor() as cursor:
-            cursor.execute(query, [student_id, student_id, student_id])
+            cursor.execute(query, [student_id])
             columns = [col[0] for col in cursor.description]
             results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 

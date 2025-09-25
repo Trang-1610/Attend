@@ -156,7 +156,7 @@ export default function AccountInformation() {
                 phone: values.phone,
                 major: values.major,
                 account: user.account_id,
-                status: "1",
+                status: "A",
                 department: values.department,
             };
 
@@ -197,6 +197,7 @@ export default function AccountInformation() {
                 subject: schedule.subject_id,
                 semester: values.semester,
                 reason: "Đăng ký môn học",
+                schedule: schedule.schedule_id,
             }));
 
             for (const req of registrationRequests) {
