@@ -5,7 +5,7 @@ import Header from "../../components/Layout/Header";
 import { useTranslation } from "react-i18next";
 import Footer from "../../components/Layout/Footer";
 import api from '../../api/axiosInstance';
-import { message, Modal } from "antd";
+import { message, Modal, Skeleton } from "antd";
 
 import ScheduleIcon from "../../assets/icons/scheduling.png";
 import ContactIcon from "../../assets/icons/contact-us.png";
@@ -31,6 +31,7 @@ export default function HomePage() {
 
     const [user, setUser] = useState(null);
     const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(true); 
 
     const navigate = useNavigate();
 
@@ -49,6 +50,8 @@ export default function HomePage() {
                 }
             } catch (err) {
                 setUser(null);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -110,46 +113,60 @@ export default function HomePage() {
         { name: "Chuyển đổi ngôn ngữ", img: TranslateIcon, path: "/language" },
         { name: "Tài khoản", img: ProfileIcon, path: "/profile" },
 
-        { name: "Báo cáo sự cố", img: WarningIcon, path: "/report-error" },
+        { name: "Báo cáo sự cố", img: WarningIcon, path: "https://forms.gle/hzNeY832k6dEwfqDA" },
         { name: "Quản trị", img: AdminIcon, path: "/admin/dashboard" },
         { name: "Đăng xuất", img: LogoutIcon, action: handleLogout },
     ];
 
     return (
-        <div className="min-h-screen bg-white text-gray-800 flex flex-col">
+        <div className="min-h-screen flex flex-col bg-white text-gray-800 dark:bg-black dark:text-white">
             <div className="w-full mx-auto px-6 flex-grow">
                 <Header />
                 <main className="container m-auto mt-20">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                        {features.map((item, index) => {
-                            const content = (
-                                <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="bg-white rounded shadow-md p-6 flex flex-col items-center justify-center cursor-pointer transition-all hover:shadow-xl"
-                                >
-                                    <img
-                                        src={item.img}
-                                        alt={item.name}
-                                        className="w-16 h-16 mb-4 object-contain"
-                                    />
-                                    <p className="text-sm font-semibold text-gray-700 text-center">
-                                        {item.name}
-                                    </p>
-                                </motion.div>
-                            );
+                    {loading ? (
+                        // Skeleton to display loading state
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                            {Array.from({ length: 12 }).map((_, index) => (
+                                <Skeleton.Button
+                                    key={index}
+                                    active
+                                    block
+                                    style={{ height: 120, borderRadius: 8 }}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                            {features.map((item, index) => {
+                                const content = (
+                                    <motion.div
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="bg-white text-gray-800 dark:bg-black dark:text-white rounded shadow-md p-6 flex flex-col items-center justify-center cursor-pointer transition-all hover:shadow-xl"
+                                    >
+                                        <img
+                                            src={item.img}
+                                            alt={item.name}
+                                            className="w-16 h-16 mb-4 object-contain"
+                                        />
+                                        <p className="text-sm font-semibold text-gray-700 text-center">
+                                            {item.name}
+                                        </p>
+                                    </motion.div>
+                                );
 
-                            return item.action ? (
-                                <div key={index} onClick={item.action}>
-                                    {content}
-                                </div>
-                            ) : (
-                                <Link key={index} to={item.path}>
-                                    {content}
-                                </Link>
-                            );
-                        })}
-                    </div>
+                                return item.action ? (
+                                    <div key={index} onClick={item.action}>
+                                        {content}
+                                    </div>
+                                ) : (
+                                    <Link key={index} to={item.path}>
+                                        {content}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )}
                 </main>
             </div>
             <Footer />

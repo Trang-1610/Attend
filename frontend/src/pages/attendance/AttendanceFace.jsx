@@ -12,7 +12,7 @@ const AttendanceFace = () => {
     }, []);
 
     return (
-        <div className="flex items-center justify-center h-screen px-4">
+        <div className="flex items-center justify-center h-screen px-4 bg-white text-gray-800 dark:bg-black dark:text-white">
             <Result
                 status="warning"
                 title="Warning"

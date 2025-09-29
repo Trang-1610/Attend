@@ -235,7 +235,7 @@ export default function CourseRegistrationForm({
                     rowKey="subject_id"
                     dataSource={subjects}
                     columns={columns}
-                    pagination={false}
+                    pagination={true}
                     bordered
                     scroll={{ x: "max-content" }}
                 />

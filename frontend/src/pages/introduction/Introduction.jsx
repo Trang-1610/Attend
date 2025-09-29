@@ -50,11 +50,10 @@ export default function AboutProjectPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-white text-gray-800 flex flex-col">
+        <div className="min-h-screen flex flex-col bg-white text-gray-800 dark:bg-black dark:text-white">
             <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 flex-grow">
                 <Header />
                 <main className="mt-8 flex flex-col items-center w-full">
-                    {/* Breadcrumb */}
                     <div className="w-full mb-4">
                         <Breadcrumb
                             items={[

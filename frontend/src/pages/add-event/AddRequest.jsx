@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Card, message, Spin } from "antd";
+import { Form, Card, message } from "antd";
 import { useWatch } from 'antd/es/form/Form';
 import LayoutWrapper from "../../components/AddEventLeaveRequest/LayoutWrapper";
 import PageHeader from "../../components/AddEventLeaveRequest/PageHeader";
@@ -7,6 +7,9 @@ import LeaveBreadcrumb from "../../components/AddEventLeaveRequest/LeaveRequest/
 import LeaveForm from "../../components/AddEventLeaveRequest/LeaveRequest/LeaveForm";
 import LeavePreview from "../../components/AddEventLeaveRequest/LeaveRequest/LeavePreview";
 import api from "../../api/axiosInstance";
+import SoundMessage from "../../assets/sounds/message.mp3";
+import playSound from "../../utils/playSound";
+import FullScreenLoader from "../../components/Spin/Spin";
 
 export default function AddRequest() {
     useEffect(() => {
@@ -109,6 +112,7 @@ export default function AddRequest() {
                                             await api.post("leaves/leave-requests/", payload);
         
                                             message.success("Gửi đơn thành công!");
+                                            playSound(SoundMessage);
                                             setLoading(false);
                                             form.resetFields([
                                                 "subject",
@@ -162,7 +166,7 @@ export default function AddRequest() {
                         </Form>
                     </Card>
                 </div>
-                <Spin spinning={loading} fullscreen tip="Đang xử lý. Vui lòng chờ..." />
+                <FullScreenLoader loading={loading} text="Đang xử lý. Vui lòng chờ..." />
             </main>
         </LayoutWrapper>
     );

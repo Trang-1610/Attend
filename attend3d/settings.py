@@ -31,7 +31,9 @@ DEBUG = True
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 
-# Application definition
+# ========================
+# APPS ARE DEFINED HERE
+# ========================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -57,14 +59,18 @@ INSTALLED_APPS = [
     'leaves',
     'lecturers',
     
-    # 'notifications',
-    'notifications.apps.NotificationsConfig',
+    'notifications',
+    # 'notifications.apps.NotificationsConfig',
 
     'rooms',
     'students',
     'subjects',
     'staffs'
 ]
+
+# ========================
+# MIDDLEWARE ARE DEFINED HERE
+# ========================
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -80,6 +86,10 @@ MIDDLEWARE = [
     "audit.middleware.AuditLogMiddleware",
     'crum.CurrentRequestUserMiddleware',
 ]
+
+# ========================
+# URLS ARE DEFINED HERE
+# ========================
 
 ROOT_URLCONF = 'attend3d.urls'
 
@@ -103,10 +113,21 @@ TEMPLATES = [
     },
 ]
 
+# ========================
+# WSGI ARE DEFINED HERE
+# ========================
+
 WSGI_APPLICATION = 'attend3d.wsgi.application'
 
-# Channels
+# ========================
+# ASGI ARE DEFINED HERE
+# ========================
+
 ASGI_APPLICATION = 'attend3d.asgi.application'
+
+# ========================
+# CHANNEL LAYERS ARE DEFINED HERE
+# ========================
 
 CHANNEL_LAYERS = {
     'default': {
@@ -189,6 +210,10 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# ========================
+# EMAIL ARE DEFINED HERE
+# ========================
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -197,8 +222,16 @@ EMAIL_HOST_USER = 'zephyrnguyen.vn@gmail.com'
 EMAIL_HOST_PASSWORD = ''
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+# ========================
+# MEDIA ARE DEFINED HERE
+# ========================
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ========================
+# CORS ARE DEFINED HERE
+# ========================
 
 CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_HTTPONLY = False
@@ -260,3 +293,11 @@ RECAPTCHA_SECRET_KEY = ''
 CRONJOBS = [
     ('0 * * * *', 'student.cron.auto_approve_requests'),
 ]
+# ==================================================================================
+# REDIS
+# ==================================================================================
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_TIMEZONE = "Asia/Ho_Chi_Minh"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60

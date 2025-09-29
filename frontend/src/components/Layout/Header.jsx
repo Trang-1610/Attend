@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button, Avatar, Dropdown, message, Popover, Badge, Drawer, Menu, Modal } from "antd";
 import { HomeOutlined, PhoneOutlined, ScanOutlined, SettingOutlined, MenuOutlined, UserOutlined, LoginOutlined, BarChartOutlined, PlusCircleOutlined, WechatWorkOutlined, AuditOutlined, LogoutOutlined, UserSwitchOutlined, ScheduleOutlined, BellOutlined, } from "@ant-design/icons";
 
@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 import api from "../../api/axiosInstance";
 import { logout } from "../../utils/auth";
 import { useLocation } from "react-router-dom";
+import SoundMessage from "../../assets/sounds/message.mp3";
+import playSound from "../../utils/playSound";
 
 export default function Header() {
     const [openDrawer, setOpenDrawer] = useState(false);
@@ -16,6 +18,25 @@ export default function Header() {
     const [user, setUser] = useState(null);
     const [notifications, setNotifications] = useState([]);
     const location = useLocation();
+
+    const fetchNotifications = useCallback(async (accountId, checkNew = false) => {
+        try {
+            const res = await api.get(`notifications/${accountId}/unread/`);
+            const data = Array.isArray(res.data) ? res.data : [];
+    
+            setNotifications((prev) => {
+                if (checkNew && data.length > prev.length) {
+                    playSound(SoundMessage);
+                }
+                return data;
+            });            
+    
+            // setNotifications(data);
+        } catch (error) {
+            message.error("Không tải được thông báo.");
+            setNotifications([]);
+        }
+    }, []);
 
     useEffect(() => {
         const path = location.pathname;
@@ -32,31 +53,61 @@ export default function Header() {
     }, [location]);
 
     useEffect(() => {
-        let intervalId;
-
-        const fetchUserAndNotifications = async () => {
+        const fetchUser = async () => {
             try {
                 const res = await api.get("/accounts/me/", { withCredentials: true });
                 setUser(res.data);
-
-                if (res.data?.account_id) {
-                    fetchNotifications(res.data.account_id);
-                }
-            } catch (err) {
+            } catch {
                 setUser(null);
             }
         };
 
-        fetchUserAndNotifications();
+        fetchUser();
+    }, []);
 
-        intervalId = setInterval(() => {
-            if (user?.account_id) {
-                fetchNotifications(user.account_id);
-            }
-        }, 1000);
+    useEffect(() => {
+        if (!user?.account_id) return;
+
+        const intervalId = setInterval(() => {
+            fetchNotifications(user.account_id, true);
+        }, 50000);
+
+        fetchNotifications(user.account_id, false);
 
         return () => clearInterval(intervalId);
-    }, [user?.account_id]);
+    }, [user?.account_id, fetchNotifications]);
+
+    // useEffect(() => {
+    //     if (!user?.account_id) return;
+
+    //     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    //     const socket = new WebSocket("ws://127.0.0.1:8000/ws/notifications/" + user.account_id + "/");
+
+    //     socket.onopen = () => {
+    //         console.log("🔌 WebSocket connected");
+    //     };
+
+    //     socket.onmessage = (event) => {
+    //         try {
+    //             const data = JSON.parse(event.data);
+    //             setNotifications((prev) => [data, ...prev]);
+    //         } catch (err) {
+    //             console.error("Error parsing WS message:", err);
+    //         }
+    //     };
+
+    //     socket.onclose = () => {
+    //         console.log("WebSocket closed");
+    //     };
+
+    //     socket.onerror = (err) => {
+    //         console.error("WebSocket error:", err);
+    //     };
+
+    //     return () => {
+    //         socket.close();
+    //     };
+    // }, [user?.account_id]);
 
     const handleLogout = () => {
         Modal.confirm({
@@ -192,16 +243,6 @@ export default function Header() {
         },
     ];
 
-    const fetchNotifications = async (accountId) => {
-        try {
-            const res = await api.get(`notifications/${accountId}/unread/`);
-            setNotifications(Array.isArray(res.data) ? res.data : []);
-        } catch (error) {
-            message.error("Không tải được thông báo.");
-            setNotifications([]);
-        }
-    };
-
     const notificationContent = (
         <div className="max-w-xs">
             {Array.isArray(notifications) && notifications.length > 0 ? (
@@ -272,7 +313,7 @@ export default function Header() {
                 />
 
                 <div className="space-x-4 flex-shrink-0 flex items-center">
-                    {!user ? (
+                    {/* {!user ? (
                         <Button icon={<LoginOutlined />} type="primary" size="middle" href="/account/login">
                             {t("login")}
                         </Button>
@@ -305,7 +346,35 @@ export default function Header() {
                                 </div>
                             </Dropdown>
                         </>
-                    )}
+                    )} */}
+                    <>
+                        <Popover
+                            content={notificationContent}
+                            title="Thông báo"
+                            trigger="hover"
+                            placement="bottomRight"
+                            className="max-w-xs"
+                        >
+                            <Badge count={notifications.length} size="small">
+                                <BellOutlined style={{ fontSize: 20, cursor: "pointer" }} />
+                            </Badge>
+                        </Popover>
+
+                        <Dropdown trigger={["hover"]} placement="bottomRight" menu={{ items: userMenuItems }}>
+                            <div className="flex items-center gap-2 cursor-pointer">
+                                {user?.avatar ? (
+
+                                    <img
+                                        src={user?.avatar}
+                                        alt="Avatar"
+                                        className="h-10 w-10 rounded-full object-cover"
+                                    />
+                                ) : (
+                                    <Avatar icon={<UserOutlined />} />
+                                )}
+                            </div>
+                        </Dropdown>
+                    </>
                 </div>
             </div>
 

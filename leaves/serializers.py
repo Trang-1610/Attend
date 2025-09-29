@@ -143,3 +143,24 @@ class SaveLeaveRequestSerializer(serializers.ModelSerializer):
                 leave_request.attachment.save(filename, ContentFile(f.read()), save=True)
 
         return leave_request
+# ==================================================
+# List subjects leave request serializers
+# ==================================================
+class ListSubjectLeaveRequestSerializer(serializers.Serializer):
+    leave_request_id = serializers.IntegerField()
+    leave_request_code = serializers.UUIDField()
+    reason = serializers.CharField()
+    from_date = serializers.DateTimeField()
+    to_date = serializers.DateTimeField()
+    leave_request_status = serializers.CharField()
+    rejected_reason = serializers.CharField()
+    subject_name = serializers.CharField()
+    max_leave_days = serializers.IntegerField()
+    attachment_url = serializers.SerializerMethodField()
+
+    def get_attachment_url(self, obj):
+        attachment = obj.get("attachment")
+        if attachment:
+            request = self.context.get("request")  # get the request object to get the base url
+            return request.build_absolute_uri(f"{settings.MEDIA_URL}{attachment}")
+        return None

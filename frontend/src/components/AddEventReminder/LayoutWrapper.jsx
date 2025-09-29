@@ -5,7 +5,7 @@ import Header from "../../components/Layout/Header";
 export default function LayoutWrapper({ children }) {
 
     return (
-        <div className="min-h-screen bg-white text-gray-800 flex flex-col">
+        <div className="min-h-screen bg-white text-gray-800 dark:bg-black dark:text-white flex flex-col">
             <Header />
             <div className="w-full mx-auto px-6 flex-grow">
                 {children}

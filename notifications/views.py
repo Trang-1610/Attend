@@ -8,6 +8,9 @@ from django.db import connection
 from rest_framework.views import APIView
 from rest_framework import status
 from students.models import Student
+import datetime
+from django.utils.timezone import now
+from .tasks import send_reminder_email
 
 # ==================================================
 # Display list notifications by account_id
@@ -203,7 +206,34 @@ class ReminderViewSet(viewsets.ModelViewSet):
         student = Student.objects.filter(account=account).first()
         if not student:
             raise serializers.ValidationError("No student found for this account.")
-        serializer.save(student=student)
+        
+        reminder = serializer.save(student=student)
+
+        """Get subject_id, student_id in Reminder model."""
+        subject_id = reminder.subject_id
+        student_id = student.student_id
+        student_email = account.email 
+
+        # Caculate time sending email before end_date
+        if reminder.end_date:
+            times = [
+                ("1h", reminder.end_date - datetime.timedelta(hours=1)),
+                ("30m", reminder.end_date - datetime.timedelta(minutes=30)),
+            ]
+        else:
+            # fallback test case
+            times = [
+                ("1h", now() + datetime.timedelta(minutes=1)),
+                ("30m", now() + datetime.timedelta(minutes=2)),
+            ]
+
+        # Create task
+        for when, send_time in times:
+            if send_time > now():
+                send_reminder_email.apply_async(
+                    args=[student_id, subject_id, student_email, when],
+                    eta=send_time
+                )
 
     def get_queryset(self):
         """

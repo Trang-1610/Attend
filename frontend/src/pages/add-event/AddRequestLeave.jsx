@@ -7,49 +7,44 @@ import {
     Table,
     Input,
     Space,
-    Badge
+    Badge,
+    message
 } from "antd";
 import Header from "../../components/Layout/Header";
 import { HomeOutlined, PlusCircleOutlined, DiffOutlined, SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import Footer from "../../components/Layout/Footer";
+import api from "../../api/axiosInstance";
+import { useTranslation } from "react-i18next";
+import dayjs from "dayjs";
 
 const { Title, Paragraph } = Typography;
 
 export default function ContactPage() {
+
+    const { t } = useTranslation();
+    const [listSubject, setListSubject] = useState([]);
+
+    const user = localStorage.getItem("user");
+    const accountId = user ? JSON.parse(user).account_id : null;
+
     useEffect(() => {
         document.title = "ATTEND 3D - Xin nghỉ phép";
-    }, []);
 
-    const [data] = useState([
-        {
-            key: '1',
-            subjectName: 'Vật lý đại cương',
-            teacherName: 'Nguyễn Văn A',
-            titleRequestLeave: 'Bệnh',
-            fromDate: '12:30 02-01-2025',
-            toDate: '15:30 02-01-2025',
-            status: 'Đã duyệt',
-        },
-        {
-            key: '2',
-            teacherName: 'Nguyễn Văn B',
-            subjectName: 'Toán cao cấp 1',
-            titleRequestLeave: 'Bệnh',
-            fromDate: '12:30 02-01-2025',
-            toDate: '12:30 02-01-2025',
-            status: 'Chờ duyệt',
-        },
-        {
-            key: '3',
-            teacherName: 'Nguyễn Văn C',
-            subjectName: 'Nhập môn dữ liệu lớn',
-            titleRequestLeave: 'Phòng Nhân sự',
-            fromDate: '12:30 02-01-2025',
-            toDate: '12:30 02-01-2025',
-            status: 'Từ chối',
-        },
-    ]);
+        const fetchListSubject = async () => {
+            try {
+                const res = await api.get(`leaves/leave-requests/list-subjects/${accountId}/`);
+                setListSubject(res.data);
+            } catch (error) {
+                console.log(error);
+                message.error("Không tải được danh sách môn học nghỉ phép.");
+                setListSubject([]);
+            }
+    
+        };
+
+        fetchListSubject();
+    }, [t, accountId]);
 
     const [searchText, setSearchText] = useState('');
     const [searchedColumn, setSearchedColumn] = useState('');
@@ -124,63 +119,78 @@ export default function ContactPage() {
 
     const columns = [
         {
-            title: 'Tên môn học',
-            dataIndex: 'subjectName',
-            key: 'subjectName',
-            ...getColumnSearchProps('subjectName'),
+            title: 'Mã nghỉ phép',
+            dataIndex: 'leave_request_code',
+            key: 'leave_request_code',
         },
         {
-            title: 'Giảng viên bộ môn',
-            dataIndex: 'teacherName',
-            key: 'teacherName',
-            ...getColumnSearchProps('teacherName'),
+            title: 'Lý do',
+            dataIndex: 'reason',
+            key: 'reason',
+            ...getColumnSearchProps('reason'),
         },
         {
-            title: 'Tiêu đề',
-            dataIndex: 'titleRequestLeave',
-            key: 'titleRequestLeave',
-            filters: [
-                { text: 'Phòng Kinh Doanh', value: 'Phòng Kinh Doanh' },
-                { text: 'Phòng IT', value: 'Phòng IT' },
-                { text: 'Phòng Nhân sự', value: 'Phòng Nhân sự' },
-            ],
-            onFilter: (value, record) => record.department.indexOf(value) === 0,
+            title: 'Môn học',
+            dataIndex: 'subject_name',
+            key: 'subject_name',
+            ...getColumnSearchProps('subject_name'),
         },
         {
             title: 'Từ ngày',
-            dataIndex: 'fromDate',
-            key: 'fromDate',
-            sorter: (a, b) => new Date(a.fromDate) - new Date(b.fromDate),
+            dataIndex: 'from_date',
+            key: 'from_date',
+            sorter: (a, b) => new Date(a.from_date) - new Date(b.from_date),
+            render: (value) => value ? dayjs(value).format("HH:mm DD/MM/YYYY") : "-"
         },
         {
             title: 'Đến ngày',
-            dataIndex: 'toDate',
-            key: 'toDate',
-            sorter: (a, b) => new Date(a.toDate) - new Date(b.toDate),
+            dataIndex: 'to_date',
+            key: 'to_date',
+            sorter: (a, b) => new Date(a.to_date) - new Date(b.to_date),
+            render: (value) => value ? dayjs(value).format("HH:mm DD/MM/YYYY") : "-"
+        },          
+        {
+            title: 'Số ngày nghỉ phép còn lại',
+            dataIndex: 'max_leave_days',
+            key: 'max_leave_days',
+            sorter: (a, b) => new Date(a.max_leave_days) - new Date(b.max_leave_days),
         },
         {
             title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
+            dataIndex: 'leave_request_status',
+            key: 'leave_request_status',
             filters: [
-                { text: 'Đã duyệt', value: 'approved' },
-                { text: 'Chờ duyệt', value: 'pending' },
-                { text: 'Từ chối', value: 'rejected' },
+                { text: 'Đã duyệt', value: 'A' },
+                { text: 'Chờ duyệt', value: 'P' },
+                { text: 'Từ chối', value: 'R' },
             ],
-            onFilter: (value, record) => record.status === value,
+            onFilter: (value, record) => record?.leave_request_status === value,
             render: (status) => {
                 const statusMap = {
-                    approved: <Badge status="success" text="Đã duyệt" />,
-                    pending: <Badge status="warning" text="Chờ duyệt" />,
-                    rejected: <Badge status="error" text="Từ chối" />,
+                    A: <Badge status="success" text="Đã duyệt" />,
+                    P: <Badge status="warning" text="Chờ duyệt" />,
+                    R: <Badge status="error" text="Từ chối" />,
                 };
                 return statusMap[status] || status;
             }
-        }
+        },
+        {
+            title: 'Tệp đính kèm',
+            dataIndex: 'attachment_url',
+            key: 'attachment_url',
+            render: (url) =>
+                url ? (
+                    <a href={url} target="_blank" rel="noopener noreferrer" download={true}>
+                        <Button type="link">Tải xuống</Button>
+                    </a>
+                ) : (
+                    "-"
+                ),
+        },        
     ];
 
     return (
-        <div className="min-h-screen bg-white text-gray-800 flex flex-col">
+        <div className="min-h-screen bg-white text-gray-800 dark:bg-black dark:text-white flex flex-col">
             <div className="w-full mx-auto px-6 flex-grow">
                 <Header />
 
@@ -188,9 +198,8 @@ export default function ContactPage() {
                     <div className="w-full px-4">
                         <Breadcrumb
                             items={[
-                                { href: '/', title: <HomeOutlined /> },
-                                { href: '/add-event/request-leave', title: <><PlusCircleOutlined /> <span>Tạo sự kiện</span></> },
-                                { title: 'Danh sách nghỉ phép của bạn' },
+                                { href: '/', title: <><HomeOutlined /> <span>Trang chủ</span></> },
+                                { href: '/add-event/request-leave', title: <><PlusCircleOutlined /> <span>Danh sách nghỉ phép của bạn</span></> }
                             ]}
                         />
                     </div>
@@ -198,7 +207,7 @@ export default function ContactPage() {
                     <div className="w-full p-5 rounded-lg mt-6">
                         <Card title={<Title level={3}>Tạo đơn sinh nghỉ phép</Title>} className="p-2">
                             <div className="flex justify-center mt-6">
-                                <div className="border rounded-lg p-4 bg-white text-center">
+                                <div className="border rounded-lg p-4 bg-white text-gray-800 dark:bg-black dark:text-white text-center">
                                     <Button
                                         icon={<DiffOutlined />}
                                         size="large"
@@ -219,10 +228,11 @@ export default function ContactPage() {
                     <div className="w-full p-5 rounded-lg mt-6">
                         <Card title={<Title level={3}>Danh sách môn học bạn nghỉ phép</Title>} className="p-2">
                             <Table
+                                rowKey={'leave_request_code'}
                                 columns={columns}
-                                dataSource={data}
+                                dataSource={listSubject}
                                 pagination={{ pageSize: 10 }}
-                                scroll={{ x: 1000 }}
+                                scroll={{ x: true }}
                             />
                         </Card>
                     </div>

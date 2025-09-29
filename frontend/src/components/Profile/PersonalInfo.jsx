@@ -64,7 +64,7 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
 
     if (!formData) {
         return (
-            <div className="bg-white rounded-xl p-8 border">
+            <div className="rounded-xl p-8 border">
                 <Alert
                     message="Chưa có thông tin. Vui lòng cập nhật"
                     type="warning"
@@ -140,7 +140,7 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
     }    
 
     return (
-        <div className="bg-white rounded-xl p-8 border">
+        <div className="rounded-xl p-8 border">
             <Title level={4}>Thông tin cá nhân</Title>
             <div className="flex flex-col items-center mt-4">
                 {avatarUrl ? (
@@ -157,27 +157,27 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                     <div className="w-full max-w-lg space-y-4 mt-4">
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-gray-500">Họ và tên</span>
-                            <span className="font-medium text-gray-900">{formData?.fullname}</span>
+                            <span className="font-medium">{formData?.fullname}</span>
                         </div>
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-gray-500">Mã số sinh viên</span>
-                            <span className="font-medium text-gray-900">{formData?.student_code}</span>
+                            <span className="font-medium">{formData?.student_code}</span>
                         </div>
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-gray-500">Số điện thoại</span>
-                            <span className="font-medium text-gray-900">{formData?.phone_number}</span>
+                            <span className="font-medium">{formData?.phone_number}</span>
                         </div>
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-gray-500">Email</span>
-                            <span className="font-medium text-gray-900">{formData?.email}</span>
+                            <span className="font-medium">{formData?.email}</span>
                         </div>
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-gray-500">Giới tính</span>
-                            <span className="font-medium text-gray-900">{formData?.gender === '1' ? "Nam" : "Nữ"}</span>
+                            <span className="font-medium">{formData?.gender === '1' ? "Nam" : "Nữ"}</span>
                         </div>
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-gray-500">Ngày sinh</span>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium">
                                 {new Date(formData?.dob).toLocaleDateString("vi-VN")}
                             </span>
                         </div>

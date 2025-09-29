@@ -75,7 +75,7 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col bg-white text-gray-800 dark:bg-black dark:text-white">
             <div className="w-full mx-auto px-6 flex-grow">
                 <Header />
                 <main className="mt-10 flex flex-col">
@@ -96,7 +96,7 @@ export default function ProfilePage() {
                         />
                     </div>
                     <div className="flex flex-col md:flex-row gap-6">
-                        <div className="w-full md:w-1/4 bg-white rounded-xl shadow p-4">
+                        <div className="w-full md:w-1/4 rounded-xl shadow p-4">
                             <div className="shadow rounded-lg p-4 text-gray-600 text-center mb-4">
                                 {avatarUrl ? (
                                     <img

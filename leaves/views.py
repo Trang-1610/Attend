@@ -3,7 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from students.models import Student
 from classes.models import ClassStudent
-from .serializers import LeaveRequestSerializer, SaveLeaveRequestSerializer
+from .serializers import (
+    LeaveRequestSerializer, SaveLeaveRequestSerializer, ListSubjectLeaveRequestSerializer
+)
 from lecturers.models import SubjectClass
 from classes.models import Schedule
 from django.db import connection
@@ -20,9 +22,8 @@ class LeaveRequestRawView(APIView):
     def get(self, request, account_id, subject_id):
         try:
             with connection.cursor() as cursor:
-                cursor.execute(
-                """
-                    WITH week AS (
+                query = """
+                WITH week AS (
                         SELECT date_trunc('week', CURRENT_DATE)::date AS week_start
                     )
                     SELECT DISTINCT ON (sch.schedule_id)
@@ -111,8 +112,9 @@ class LeaveRequestRawView(APIView):
                     AND r.status = '1'
                     AND se.status = '1'
                     ORDER BY sch.schedule_id, occurrence_start;
-                """, 
-                [account_id, subject_id])
+                """
+
+                cursor.execute(query, [account_id, subject_id])
 
                 columns = [col[0] for col in cursor.description]
                 results = [dict(zip(columns, row)) for row in cursor.fetchall()]
@@ -128,3 +130,43 @@ class LeaveRequestRawView(APIView):
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     queryset = LeaveRequest.objects.all()
     serializer_class = SaveLeaveRequestSerializer
+# ==================================================
+# List subjects leave request view
+# ==================================================
+class ListSubjectsLeaveRequestView(APIView):
+    def get(self, request, account_id):
+        try:
+            with connection.cursor() as cursor:
+                query = """
+                SELECT
+                    lr.leave_request_id,
+                    lr.leave_request_code,
+                    lr.reason,
+                    lr.from_date,
+                    lr.to_date,
+                    lr.status AS leave_request_status,
+                    lr.rejected_reason,
+                    lr.attachment,
+                    sub.subject_name,
+                    ss.max_leave_days
+                FROM leave_requests AS lr
+                    JOIN subjects AS sub
+                        ON sub.subject_id = lr.subject_id
+                    JOIN students AS st
+                        ON st.student_id = lr.student_id
+                    LEFT JOIN accounts AS acc 
+                        ON acc.account_id = st.account_id
+                    LEFT JOIN student_subjects AS ss
+                        ON ss.subject_id = sub.subject_id
+                WHERE acc.account_id = %s
+                    AND sub.status = '1'
+                """
+                cursor.execute(query, [account_id])
+
+                columns = [col[0] for col in cursor.description]
+                results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            serializer = ListSubjectLeaveRequestSerializer(results, many=True, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)

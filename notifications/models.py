@@ -97,6 +97,9 @@ class Reminder(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
 
+    sent_email_1h_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when 1-hour-before email was sent.")
+    sent_email_30m_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when 30-minute-before email was sent.")
+
     class Meta:
         db_table = 'reminders'
         indexes = [
@@ -109,5 +112,3 @@ class Reminder(models.Model):
 
     def __str__(self):
         return self.title
-
-

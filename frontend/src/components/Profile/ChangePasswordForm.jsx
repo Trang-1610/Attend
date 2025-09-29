@@ -32,7 +32,7 @@ export default function ChangePasswordForm() {
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl border">
+        <div className="p-6 rounded-xl border">
             <Title level={4}>Đổi mật khẩu</Title>
             <Form layout="vertical" onFinish={handleSubmit}>
                 <Form.Item

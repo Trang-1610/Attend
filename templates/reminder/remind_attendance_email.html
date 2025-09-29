@@ -1,13 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <main>
-        
-    </main>
-</body>
+<html lang="vi">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Nhắc nhở điểm danh - ATTEND 3D</title>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <td align="center">
+                    <h1>ATTEND 3D</h1>
+                    <p>Thông báo nhắc nhở điểm danh</p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h2>Xin chào!</h2>
+                    <p>Bạn có lịch học sắp diễn ra vào lúc <strong>{{ start_time
+                            }}</strong></p>
+
+                    <p>Thông tin môn học:</p>
+                    <ul>
+                        <li>Môn học: {{ subject_name }}</li>
+                        <li>Lớp: {{ class_name }}</li>
+                        <li>Tiết học: {{ period_number }}</li>
+                        <li>Thời gian bắt đầu: {{ start_time }}</li>
+                        <li>Còn lại: <strong>{{ minutes_left }}</strong> phút
+                            đến giờ điểm danh</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p>Chúc bạn học tập hiệu quả!</p>
+                    <p><strong>ATTEND 3D</strong></p>
+                    <p>Website: <a
+                            href="https://attend3d.io">attend3d.io</a></p>
+                    <p>Phone number: 0825 025 347</p>
+                    <p>
+                        Email:
+                        <a
+                            href="mailto:zephyrnguyen.vn@gmail.com">zephyrnguyen.vn@gmail.com</a>
+                    </p>
+                    <hr />
+                    <p>&copy; 2025 ATTEND 3D. All rights reserved.</p>
+                </td>
+            </tr>
+        </table>
+    </body>
 </html>

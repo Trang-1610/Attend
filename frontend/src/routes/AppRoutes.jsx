@@ -7,6 +7,7 @@ import Contact from "../pages/contact/Contact";
 import Notification from "../pages/notification/Notification";
 import Introduction from "../pages/introduction/Introduction";
 import ToDoList from "../pages/to-do-list/ToDoList";
+import Term from "../pages/terms/Term";
 import AddReminder from "../pages/add-event/AddReminder";
 import AddRequestLeave from "../pages/add-event/AddRequestLeave";
 import AddRequest from "../pages/add-event/AddRequest";
@@ -62,6 +63,7 @@ const AppRoutes = () => {
             <Route path="/notifications/all" element={<ProtectedRoute><Notification /></ProtectedRoute>} />
             <Route path="/introduction" element={<ProtectedRoute><Introduction /></ProtectedRoute>} />
             <Route path="/to-do-list/today" element={<ProtectedRoute><ToDoList /></ProtectedRoute>} />
+            <Route path="/terms" element={<ProtectedRoute><Term /></ProtectedRoute>} />
             <Route path="/add-event/add-reminder" element={<ProtectedRoute><AddReminder /></ProtectedRoute>} />
             <Route path="/add-event/request-leave" element={<ProtectedRoute><AddRequestLeave /></ProtectedRoute>} />
             <Route path="/add-event/request-leave/request" element={<ProtectedRoute><AddRequest /></ProtectedRoute>} />

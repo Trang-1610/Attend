@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, List, Typography, Tag } from "antd";
+import { Card, List, Typography, Tag, Button, Tooltip } from "antd";
 import { CheckSquareOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import TaskList from "../../components/ToDoList/TaskList";
@@ -28,15 +28,28 @@ export default function ReminderCard({ reminders, openEditModal, newTask, setNew
                         return (
                             <List.Item
                                 actions={[
-                                    // <Button
-                                    //     type="link"
-                                    //     onClick={() => openEditModal(rem)}
-                                    //     // disabled={!canEdit}
-                                    //     disabled
-                                    // >
-                                    //     Sửa
-                                    // </Button>,
-                                ]}
+                                    !canEdit ? (
+                                        <Tooltip
+                                            placement="top"
+                                            title="Do thông báo sẽ gửi tự động qua email nên không thể sửa trong 60 phút còn lại."
+                                        >
+                                            <Button
+                                                type="link"
+                                                onClick={() => openEditModal(rem)}
+                                                disabled
+                                            >
+                                                Sửa
+                                            </Button>
+                                        </Tooltip>
+                                    ) : (
+                                        <Button
+                                            type="link"
+                                            onClick={() => openEditModal(rem)}
+                                        >
+                                            Sửa
+                                        </Button>
+                                    ),
+                                ]}                            
                             >
                                 <List.Item.Meta
                                     title={<b>{rem.title}</b>}
@@ -67,11 +80,6 @@ export default function ReminderCard({ reminders, openEditModal, newTask, setNew
                                                     Email
                                                 </Tag>
                                             </div>
-                                            {!canEdit && (
-                                                <div style={{ color: "red", marginTop: 4 }}>
-                                                    Không thể chỉnh sửa (còn ≤ 60 phút đến hạn)
-                                                </div>
-                                            )}
                                         </>
                                     }
                                 />

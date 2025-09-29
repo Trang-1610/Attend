@@ -12,7 +12,6 @@ import isBetween from "dayjs/plugin/isBetween";
 
 import ScheduleCard from "../../components/ToDoList/ScheduleCard";
 import ReminderCard from "../../components/ToDoList/ReminderCard";
-import AttendanceModal from "../../components/ToDoList/AttendanceModal";
 import EditReminderModal from "../../components/ToDoList/EditReminderModal";
 
 dayjs.extend(utc);
@@ -28,8 +27,8 @@ export default function ToDoList() {
     const [newTask, setNewTask] = useState("");
 
     // Modal state for attendance
-    const [openModal, setOpenModal] = useState(false);
-    const [selectedSchedule, setSelectedSchedule] = useState(null);
+    const [, setOpenModal] = useState(false);
+    const [, setSelectedSchedule] = useState(null);
 
     // Reminder state
     const [reminders, setReminders] = useState([]);
@@ -182,7 +181,7 @@ export default function ToDoList() {
     };
 
     return (
-        <div className="min-h-screen bg-white text-gray-800 flex flex-col">
+        <div className="min-h-screen bg-white text-gray-800 dark:bg-black dark:text-white flex flex-col">
             <div className="w-full mx-auto px-6 flex-grow">
                 <Header />
                 <main className="mt-10 flex flex-col items-center">
@@ -235,11 +234,11 @@ export default function ToDoList() {
             </div>
             <Footer />
 
-            <AttendanceModal
+            {/* <AttendanceModal
                 openModal={openModal}
                 setOpenModal={setOpenModal}
                 selectedSchedule={selectedSchedule}
-            />
+            /> */}
 
             <EditReminderModal
                 editModalOpen={editModalOpen}

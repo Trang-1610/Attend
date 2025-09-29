@@ -53,22 +53,22 @@ export default function NotificationPage() {
 
     const markAsRead = async (notificationId) => {
         try {
-          await api.post(`/notifications/${accountId}/mark-read/`, {
-            notification_id: notificationId,
-          });
-      
-          setNotifications((prev) =>
-            prev.map((n) =>
-              n.notification_id === notificationId ? { ...n, is_read: "1" } : n
-            )
-          );
-      
-          message.success("Đã cập nhật trạng thái thông báo.");
+            await api.post(`/notifications/${accountId}/mark-read/`, {
+                notification_id: notificationId,
+            });
+
+            setNotifications((prev) =>
+                prev.map((n) =>
+                    n.notification_id === notificationId ? { ...n, is_read: "1" } : n
+                )
+            );
+
+            message.success("Đã cập nhật trạng thái thông báo.");
         } catch (error) {
-          console.error("Update error:", error);
-          message.error("Không thể cập nhật thông báo.");
+            console.error("Update error:", error);
+            message.error("Không thể cập nhật thông báo.");
         }
-    };      
+    };
 
     const columns = [
         {
@@ -76,11 +76,11 @@ export default function NotificationPage() {
             dataIndex: "checkbox",
             key: "checkbox",
             render: (_, record) => (
-              <Checkbox
-                checked={record.is_read === "1"}
-                disabled={record.is_read === "1"}
-                onChange={() => markAsRead(record.notification_id)}
-              />
+                <Checkbox
+                    checked={record.is_read === "1"}
+                    disabled={record.is_read === "1"}
+                    onChange={() => markAsRead(record.notification_id)}
+                />
             ),
         },
         {
@@ -120,7 +120,7 @@ export default function NotificationPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-white text-gray-800 flex flex-col">
+        <div className="min-h-screen bg-white text-gray-800 dark:bg-black dark:text-white flex flex-col">
             <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 flex-grow">
                 <Header />
                 <main className="mt-8 flex flex-col items-center">

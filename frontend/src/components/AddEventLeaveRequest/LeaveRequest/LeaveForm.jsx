@@ -12,6 +12,7 @@ export default function LeaveForm({ form, leaveData, loading, studentSubjects })
 
     return (
         <>
+            {/* Fiels subject */}
             <Form.Item
                 label="Tên môn học"
                 rules={[{ required: true, message: 'Vui lòng chọn môn học!' }]}
@@ -26,6 +27,7 @@ export default function LeaveForm({ form, leaveData, loading, studentSubjects })
                     }))}
                     size="large"
                     className="w-full custom-select"
+                    placeholder="Chọn môn học"
                     showSearch
                     filterOption={(input, option) =>
                         (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
@@ -33,15 +35,17 @@ export default function LeaveForm({ form, leaveData, loading, studentSubjects })
                 />
             </Form.Item>
 
+            {/* Fields teacher */}
             <Form.Item label="Tên giảng viên" name={'teacher'}>
                 <Input
                     size="large"
                     className="w-full"
-                    readOnly
+                    disabled
                     style={{ cursor: 'not-allowed', borderWidth: 1.5, boxShadow: 'none' }}
                 />
             </Form.Item>
 
+            {/* Fields personal leave */}
             <Form.Item
                 label="Lý do"
                 name="personalLeave"
@@ -55,6 +59,7 @@ export default function LeaveForm({ form, leaveData, loading, studentSubjects })
                 />
             </Form.Item>
 
+            {/* Fields date range */}
             <Form.Item
                 label="Thời gian nghỉ phép"
                 name="rangeDate"
@@ -70,7 +75,7 @@ export default function LeaveForm({ form, leaveData, loading, studentSubjects })
 
                             const [start, end] = value;
 
-                            // Nếu thiếu 1 trong 2 ngày
+                            // If start or end is null
                             if (!start || !end) {
                                 return Promise.reject(
                                     new Error('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc!')
@@ -79,31 +84,31 @@ export default function LeaveForm({ form, leaveData, loading, studentSubjects })
 
                             const today = dayjs().startOf('day');
 
-                            // Ngày phải lớn hơn hoặc bằng hôm nay
+                            // Days before today are not allowed to be selected as start or end
                             if (start.isBefore(today, 'day') || end.isBefore(today, 'day')) {
                                 return Promise.reject(
                                     new Error('Ngày nghỉ phép phải lớn hơn hoặc bằng ngày hôm nay!')
                                 );
                             }
 
-                            // Ngày kết thúc phải sau ngày bắt đầu
+                            // Start date must be before end date
                             if (end.isBefore(start, 'day')) {
                                 return Promise.reject(
                                     new Error('Ngày kết thúc phải sau ngày bắt đầu!')
                                 );
                             }
 
-                            // Check theo lịch học (day_of_week)
-                            if (leaveData && leaveData.day_of_week) {
+                            // Check by day of week
+                            if (leaveData && leaveData?.day_of_week) {
                                 const mapDayOfWeek = {
                                     2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 0
                                 };
-                                const requiredDay = mapDayOfWeek[leaveData.day_of_week];
+                                const requiredDay = mapDayOfWeek[leaveData?.day_of_week];
 
                                 if (start.day() !== requiredDay || end.day() !== requiredDay) {
                                     return Promise.reject(
                                         new Error(
-                                            `Ngày bắt đầu/kết thúc phải rơi vào thứ ${leaveData.day_of_week}!`
+                                            `Ngày bắt đầu/kết thúc phải rơi vào thứ ${leaveData?.day_of_week}!`
                                         )
                                     );
                                 }
@@ -111,8 +116,8 @@ export default function LeaveForm({ form, leaveData, loading, studentSubjects })
 
                             // Check by semester
                             if (leaveData?.start_date_semester && leaveData?.end_date_semester) {
-                                const startSemester = dayjs(leaveData.start_date_semester);
-                                const endSemester = dayjs(leaveData.end_date_semester);
+                                const startSemester = dayjs(leaveData?.start_date_semester);
+                                const endSemester = dayjs(leaveData?.end_date_semester);
 
                                 if (
                                     start.isBefore(startSemester, 'day') ||
@@ -140,9 +145,13 @@ export default function LeaveForm({ form, leaveData, loading, studentSubjects })
                     format="HH:mm DD/MM/YYYY"
                     className="w-full"
                     style={{ borderWidth: 1.5, boxShadow: 'none' }}
+                    disabledDate={(current) => {
+                        return current && current < dayjs().startOf('day');
+                    }}
                 />
             </Form.Item>
 
+            {/* Fields images */}
             <Form.Item
                 label="Ảnh minh chứng"
                 name="images"
@@ -175,6 +184,7 @@ export default function LeaveForm({ form, leaveData, loading, studentSubjects })
                 </Upload>
             </Form.Item>
 
+            {/* Submit button */}
             <Form.Item className="mt-6">
                 <Button type="primary" htmlType="submit" size="large" loading={loading} className="w-full md:w-auto">
                     Gửi đơn

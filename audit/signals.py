@@ -262,16 +262,31 @@ def json_safe(value):
         return value.url if value and hasattr(value, "url") else None
     return value
     
-def serialize_instance(instance):
+def serialize_instance(instance, exclude_fields=None):
     """
     Convert model instance -> dict JSON-safe.
     Image/FileField sẽ chỉ lấy đường dẫn (string).
     """
     try:
         data = model_to_dict(instance)
-        return {k: json_safe(v) for k, v in data.items()}
-    except Exception:
-        return {"id": getattr(instance, "pk", None)}
+
+        # Ignore fields
+        if exclude_fields:
+            for f in exclude_fields:
+                data.pop(f, None)
+
+        safe_data = {}
+        for k, v in data.items():
+            if isinstance(v, list):  # ManyToMany -> list ids
+                safe_data[k] = [obj.pk if hasattr(obj, "pk") else str(obj) for obj in v]
+            elif hasattr(v, "pk"):  # ForeignKey -> id
+                safe_data[k] = v.pk
+            else:
+                safe_data[k] = json_safe(v)
+
+        return safe_data
+    except Exception as e:
+        return {"id": getattr(instance, "pk", None), "error": str(e)}
 
 
 @receiver(pre_save)

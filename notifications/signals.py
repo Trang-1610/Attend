@@ -10,6 +10,7 @@ from lecturers.models import Lecturer
 from attend3d.middleware.thread_local import get_current_request
 from helper.get_client_ip import get_client_ip
 from lecturers.models import LecturerSubject, SubjectClass
+from leaves.models import LeaveRequest
 
 # ==================================================
 # Create notification when user login
@@ -72,6 +73,18 @@ def create_notification_for_reminder(sender, instance, created, **kwargs):
         Notification.objects.create(
             title=f"Nhắc nhở: {instance.title}",
             content=instance.content,
+            created_by=instance.student.account,
+            to_target=instance.student.account
+        )
+# ==================================================
+# Create notification when leave request is created
+# ==================================================
+@receiver(post_save, sender=LeaveRequest)
+def create_notification_for_leave_request(sender, instance, created, **kwargs):
+    if created:
+        Notification.objects.create(
+            title=f"Bạn đã xin nghỉ phép môn {instance.subject.subject_name}",
+            content=instance.reason,
             created_by=instance.student.account,
             to_target=instance.student.account
         )

@@ -59,7 +59,7 @@ export default function TimeTable() {
     ];
 
     return (
-        <div className="min-h-screen bg-white text-black flex flex-col">
+        <div className="min-h-screen flex flex-col bg-white text-gray-800 dark:bg-black dark:text-white">
             <div className="w-full mx-auto px-6 flex-grow">
                 <Header />
                 <main className="m-auto mt-10 px-4">

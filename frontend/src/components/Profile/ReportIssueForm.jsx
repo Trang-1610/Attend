@@ -14,7 +14,7 @@ export default function ReportIssueForm() {
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl border">
+        <div className="p-6 rounded-xl border">
             <Title level={4}>Báo cáo lỗi</Title>
             <Form layout="vertical" onFinish={(values) => console.log(values)}>
                 <Form.Item

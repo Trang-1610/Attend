@@ -74,14 +74,14 @@ export default function ScheduleCard({ loading, todaySchedules, openAttendanceMo
                             <List.Item
                                 className="rounded-lg p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
                                 actions={[
-                                    <Button
-                                        type="primary"
-                                        onClick={() => openAttendanceModal(item)}
-                                        disabled={disabled}
-                                        className="w-full sm:w-auto"
-                                    >
-                                        Điểm danh
-                                    </Button>,
+                                    // <Button
+                                    //     type="primary"
+                                    //     onClick={() => openAttendanceModal(item)}
+                                    //     disabled={disabled}
+                                    //     className="w-full sm:w-auto"
+                                    // >
+                                    //     Điểm danh
+                                    // </Button>,
                                 ]}
                             >
                                 <div className="w-full">
