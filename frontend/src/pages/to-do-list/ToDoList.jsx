@@ -197,7 +197,7 @@ export default function ToDoList() {
                                     ),
                                 },
                                 {
-                                    href: "/todo",
+                                    href: "/to-do-list/today",
                                     title: (
                                         <>
                                             <CheckSquareOutlined />{" "}

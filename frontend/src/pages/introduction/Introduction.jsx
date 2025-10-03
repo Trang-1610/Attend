@@ -3,11 +3,14 @@ import { Breadcrumb, Card, Table } from "antd";
 import { HomeOutlined, TeamOutlined, ProjectOutlined } from "@ant-design/icons";
 import Header from "../../components/Layout/Header";
 import Footer from "../../components/Layout/Footer";
+import { useTranslation } from "react-i18next";
 
 export default function AboutProjectPage() {
+    const { t } = useTranslation();
+
     useEffect(() => {
-        document.title = "Giới thiệu dự án và thành viên - ATTEND 3D";
-    }, []);
+        document.title = t("project and member introduction") + " - ATTEND 3D";
+    }, [t]);
 
     const members = [
         {
@@ -61,7 +64,7 @@ export default function AboutProjectPage() {
                                     href: "/",
                                     title: (
                                         <>
-                                            <HomeOutlined /> <span>Trang chủ</span>
+                                            <HomeOutlined /> <span>{t("home")}</span>
                                         </>
                                     ),
                                 },
@@ -69,7 +72,7 @@ export default function AboutProjectPage() {
                                     href: "/about",
                                     title: (
                                         <>
-                                            <ProjectOutlined /> <span>Giới thiệu dự án</span>
+                                            <ProjectOutlined /> <span>{t("project and member introduction")}</span>
                                         </>
                                     ),
                                 },
@@ -81,7 +84,7 @@ export default function AboutProjectPage() {
                             className="rounded mb-6"
                             title={
                                 <div className="flex items-center gap-2 text-lg">
-                                    <ProjectOutlined /> Giới thiệu dự án
+                                    <ProjectOutlined /> {t("project introduction")}
                                 </div>
                             }
                         >

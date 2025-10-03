@@ -5,6 +5,8 @@ import SubjectInfoForm from "./SubjectInfoForm";
 import api from "../../../api/axiosInstance";
 import { useWatch } from 'antd/es/form/Form';
 import dayjs from "dayjs";
+import SoundMessage from "../../../assets/sounds/message.mp3";
+import playSound from "../../../utils/playSound";
 
 const { Title } = Typography;
 
@@ -112,6 +114,7 @@ export default function EventForm() {
                             await api.post("reminders/", payload);
                 
                             message.success("Tạo sự kiện thành công!");
+                            playSound(SoundMessage);
                             form.resetFields(['title', 'content', 'rangeDate', 'emailNotification', 'subject', 'teacher', 'roomName', 'slotName']);
                 
                         } catch (error) {

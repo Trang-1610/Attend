@@ -13,11 +13,14 @@ html, body, #root {
   height: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
-  overflow-y: scroll;
 }
 
 *, *::before, *::after {
   box-sizing: inherit;
+}
+
+.grecaptcha-badge {
+  margin-top: -100px;
 }
 
 code {

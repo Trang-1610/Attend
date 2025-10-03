@@ -13,7 +13,7 @@ i18n
       en: { translation: en },
       vi: { translation: vi },
     },
-    lng: "vi",
+    lng: localStorage.getItem("lang") || "vi",
     fallbackLng: "en",
     interpolation: { escapeValue: false },
     detection: {

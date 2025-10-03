@@ -18,9 +18,9 @@ import ReminderIcon from "../../assets/icons/reminder-notes.png";
 import QRCodeIcon from "../../assets/icons/scan-code.png";
 import SettingIcon from "../../assets/icons/settings.png";
 import TermIcon from "../../assets/icons/terms.png";
-import TranslateIcon from "../../assets/icons/translate.png";
+// import TranslateIcon from "../../assets/icons/translate.png";
 import WarningIcon from "../../assets/icons/message-warning.png";
-import AdminIcon from "../../assets/icons/admin.png";
+// import AdminIcon from "../../assets/icons/admin.png";
 import LogoutIcon from "../../assets/icons/logout.png";
 import ProfileIcon from "../../assets/icons/profile.png";
 import IntroductionIcon from "../../assets/icons/introduction.png";
@@ -95,27 +95,27 @@ export default function HomePage() {
     };
 
     const features = [
-        { name: "Giới thiệu", img: IntroductionIcon, path: "/introduction" },
-        { name: "Lịch học", img: ScheduleIcon, path: "/timetable" },
-        { name: "Nhiệm vụ & Check in", img: ToDoListIcon, path: "/to-do-list/today" },
-        { name: "Điểm danh QR Code", img: QRCodeIcon, path: "attendance/attendance-qr" },
-        { name: "Đăng ký khuôn mặt", img: ScanFaceIcon, path: "attendance/add-face" },
-        { name: "Lịch sử điểm danh", img: HistoryIcon, path: "attendance/attendance-history" },
-        { name: "Xin nghỉ phép", img: LeaveIcon, path: "/add-event/request-leave/request" },
+        { name: t("introduction"), img: IntroductionIcon, path: "/introduction" },
+        { name: t("timetable"), img: ScheduleIcon, path: "/timetable" },
+        { name: t("assignment & to-do list"), img: ToDoListIcon, path: "/to-do-list/today" },
+        { name: t("attendance qr code"), img: QRCodeIcon, path: "attendance/attendance-qr" },
+        { name: t("attendance face"), img: ScanFaceIcon, path: "attendance/add-face" },
+        { name: t("attendance history"), img: HistoryIcon, path: "attendance/attendance-history" },
+        { name: t("request leave"), img: LeaveIcon, path: "/add-event/request-leave/request" },
 
-        { name: "Thống kê", img: DashboardIcon, path: "/attendance/statistics" },
-        { name: `Thông báo (${notifications.length})`, img: NotificationIcon, path: "/notifications/all" },
-        { name: "Nhắc nhở điểm danh", img: ReminderIcon, path: "/add-event/add-reminder" },
+        { name: t("statistics"), img: DashboardIcon, path: "/attendance/statistics" },
+        { name: t("notifications") + ` (${notifications.length})`, img: NotificationIcon, path: "/notifications/all" },
+        { name: t("attendance reminder"), img: ReminderIcon, path: "/add-event/add-reminder" },
 
-        { name: "Liên hệ", img: ContactIcon, path: "/contact" },
-        { name: "Cài đặt", img: SettingIcon, path: "/general-setting" },
-        { name: "Điều khoản dữ liệu", img: TermIcon, path: "/terms" },
-        { name: "Chuyển đổi ngôn ngữ", img: TranslateIcon, path: "/language" },
-        { name: "Tài khoản", img: ProfileIcon, path: "/profile" },
+        { name: t('contact'), img: ContactIcon, path: "/contact" },
+        { name: t("setting"), img: SettingIcon, path: "/general-setting" },
+        { name: t("terms"), img: TermIcon, path: "/terms" },
+        // { name: "Chuyển đổi ngôn ngữ", img: TranslateIcon, path: "/language" },
+        { name: t("profile"), img: ProfileIcon, path: "/profile" },
 
-        { name: "Báo cáo sự cố", img: WarningIcon, path: "https://forms.gle/hzNeY832k6dEwfqDA" },
-        { name: "Quản trị", img: AdminIcon, path: "/admin/dashboard" },
-        { name: "Đăng xuất", img: LogoutIcon, action: handleLogout },
+        { name: t("report error"), img: WarningIcon, path: "https://forms.gle/hzNeY832k6dEwfqDA" },
+        // { name: "Quản trị", img: AdminIcon, path: "/admin/dashboard" },
+        { name: t("logout"), img: LogoutIcon, action: handleLogout },
     ];
 
     return (
