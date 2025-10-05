@@ -9,22 +9,33 @@ from django.core.mail import EmailMultiAlternatives
 import hashlib, secrets
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.crypto import get_random_string
 
 OTP_STORE = {}
 
+# ==================================================
+# OTP
+# ==================================================
 def generate_otp(length=6):
     return ''.join(secrets.choice("0123456789") for _ in range(length))
 
+# ==================================================
+# Hash OTP
+# ==================================================
 def hash_otp(otp):
     return hashlib.sha256(otp.encode()).hexdigest()
 
-# Account List
+# ==================================================
+# Account Information Serializer
+# ==================================================
 class AccountInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ['email', 'phone_number', 'email']
 
-# Signup
+# ==================================================
+# Signup Serializer
+# ==================================================
 class AccountSerializer(serializers.ModelSerializer):
     role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all())
 
@@ -70,9 +81,9 @@ class AccountSerializer(serializers.ModelSerializer):
             account.groups.add(role)
 
         return account
-# End signup
-
-# Login
+# ==================================================
+# Login Serializer
+# ==================================================
 class LoginSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=10)
     password = serializers.CharField(write_only=True)
@@ -96,14 +107,16 @@ class LoginSerializer(serializers.Serializer):
 
         data['user'] = account
         return data
-# End login
-
-# ================================ Get all accounts ================================ #
+# ==================================================
+# Account List
+# ==================================================
 class AccountListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ['account_id', 'email', 'is_active', 'phone_number', 'is_locked', 'user_type']
-# ================================ End get all accounts ============================ #
+# ==================================================
+# Account Reset Password Student
+# ==================================================
 class AccountResetPassword(serializers.Serializer):
     email = serializers.EmailField()
     new_password = serializers.CharField(min_length=8)
@@ -138,7 +151,9 @@ class AccountResetPassword(serializers.Serializer):
 
         return account
     
-# Reset password for lecturer
+# ==================================================
+# Reset Password Lecturer
+# ==================================================
 class AccountResetPasswordLecturer(serializers.Serializer):
     email = serializers.EmailField()
     new_password = serializers.CharField(min_length=8)
@@ -173,10 +188,12 @@ class AccountResetPasswordLecturer(serializers.Serializer):
 
         return account
 
-# =================== CHANGE PASSWORD ================== #
+# ==================================================
+# Change Password
+# ==================================================
 class RequestOTPChangePasswordSerializer(serializers.Serializer):
     """
-    B1: Người dùng gửi email/phone để nhận OTP đổi mật khẩu
+    Step 1: Request OTP by providing email
     """
     email = serializers.EmailField()
 
@@ -197,7 +214,7 @@ class RequestOTPChangePasswordSerializer(serializers.Serializer):
             "attempts": 0
         }
 
-        # Gửi email OTP
+        # send email OTP
         subject = "OTP đổi mật khẩu"
         from_email = "zephyrnguyen.vn@gmail.com"
         to = [email]
@@ -211,7 +228,7 @@ class RequestOTPChangePasswordSerializer(serializers.Serializer):
 
 class VerifyOTPChangePasswordSerializer(serializers.Serializer):
     """
-    B2: Người dùng nhập email + otp + mật khẩu mới để đổi password
+    Step 2: Verify OTP and provide new password and confirm password
     """
     email = serializers.EmailField()
     otp = serializers.CharField()
@@ -258,9 +275,127 @@ class VerifyOTPChangePasswordSerializer(serializers.Serializer):
         account.set_password(new_password)
         account.save()
 
-        # đánh dấu OTP đã dùng
+        # Remove OTP from store
         if email in OTP_STORE:
             del OTP_STORE[email]
 
         return account
-# =================== END CHANGE PASSWORD ================== #
+# ==================================================
+# Send OTP for Change Password
+# ==================================================
+class RequestEmailChangePasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            account = Account.objects.get(email=value)
+        except Account.DoesNotExist:
+            raise serializers.ValidationError("Email không tồn tại trong hệ thống.")
+        return value
+
+    def save(self):
+        email = self.validated_data["email"]
+        account = Account.objects.get(email=email)
+
+        otp = get_random_string(length=6, allowed_chars="0123456789")
+
+        account.otp_code = otp
+        account.otp_created_at = timezone.now()
+        account.save()
+
+        # Send email with OTP
+        subject = "Mã OTP - ATTEND 3D"
+        from_email = "zephyrnguyen.vn@gmail.com"
+        to = [email]
+
+        html_content = render_to_string(
+            "account/otp_email.html",
+            {"otp": otp, "email": email},
+        )
+        text_content = f"Mã OTP của bạn là: {otp}. Mã có hiệu lực trong 5 phút."
+
+        msg = EmailMultiAlternatives(subject, text_content, from_email, to)
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+
+        return {"email": email, "otp_sent": True}
+# ==================================================
+# Resend OTP for Change Password
+# ==================================================
+class ResendOtpSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            self.user = Account.objects.get(email=value)
+        except Account.DoesNotExist:
+            raise serializers.ValidationError("Email không tồn tại.")
+        return value
+
+    def save(self):
+        user = self.user
+        email = user.email
+        otp = get_random_string(length=6, allowed_chars="0123456789")
+
+        user.otp_code = otp
+        user.otp_created_at = timezone.now()
+        user.save()
+
+        subject = "Mã OTP - ATTEND 3D"
+        from_email = "zephyrnguyen.vn@gmail.com"
+        to = [email]
+
+        html_content = render_to_string(
+            "account/otp_email.html",
+            {"otp": otp, "email": email},
+        )
+
+        text_content = f"Mã OTP của bạn là: {otp}. Mã có hiệu lực trong 5 phút."
+
+        msg = EmailMultiAlternatives(subject, text_content, from_email, to)
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+
+        return {"success": True, "message": "OTP mới đã được gửi qua email."}
+# ==================================================
+# Reset Password for Change Password
+# ==================================================
+class ResetPasswordForChangePassword(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        password = attrs.get("password")
+        confirm_password = attrs.get("confirm_password")
+
+        if password != confirm_password:
+            raise serializers.ValidationError("Mật khẩu xác nhận không khớp.")
+
+        if len(password) < 8 or not any(c.isdigit() for c in password) or not any(c.isalpha() for c in password):
+            raise serializers.ValidationError("Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ và số.")
+
+        return attrs
+
+    def save(self):
+        email = self.validated_data["email"]
+        password = self.validated_data["password"]
+
+        try:
+            user = Account.objects.get(email=email)
+        except Account.DoesNotExist:
+            raise serializers.ValidationError("Tài khoản không tồn tại.")
+
+        # If user has not verified OTP yet
+        # if hasattr(user, "is_otp_verified") and not user.is_otp_verified:
+        #     raise serializers.ValidationError("OTP chưa được xác thực, không thể đổi mật khẩu.")
+
+        # Update password
+        user.password = make_password(password)
+        user.otp_code = None
+        user.otp_created_at = None
+        if hasattr(user, "is_otp_verified"):
+            user.is_otp_verified = False
+        user.save()
+
+        return {"success": True, "message": "Mật khẩu đã được đặt lại thành công."}

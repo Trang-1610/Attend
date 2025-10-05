@@ -1,6 +1,7 @@
 import React from "react";
 import { Form, Input } from "antd";
 import { ProfileOutlined } from "@ant-design/icons";
+import {Icons} from "../Icons/Icons";
 
 export default function EmailInput({ apiErrors }) {
     return (
@@ -16,7 +17,7 @@ export default function EmailInput({ apiErrors }) {
         >
             <Input
                 size="large"
-                suffix={<ProfileOutlined />}
+                suffix={Icons.Email}
                 placeholder="Nhập email"
                 style={{ borderWidth: 1.5, boxShadow: 'none' }}
             />

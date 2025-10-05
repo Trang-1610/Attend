@@ -1,5 +1,13 @@
 from django.urls import path
-from .views import csrf_cookie, send_otp, verify_otp, update_avatar, LoginView, ResetPasswordView, lock_account, bulk_create_students, bulk_create_lecturers, ResetPasswordLecturerView, unlock_account, LogoutView, RefreshTokenView, MeView, get_csrf, GetAllAccountsView, RequestOTPChangePasswordView, VerifyOTPChangePasswordView
+from .views import (
+    csrf_cookie, send_otp, verify_otp, 
+    update_avatar, LoginView, ResetPasswordView, 
+    lock_account, bulk_create_students, bulk_create_lecturers, 
+    ResetPasswordLecturerView, unlock_account, LogoutView, 
+    RefreshTokenView, MeView, get_csrf, GetAllAccountsView, 
+    RequestOTPChangePasswordView, VerifyOTPChangePasswordView, RequestEmailChangePasswordView,
+    VerifyOtpResetPasswordView, ResendOtpView, ResetPasswordForChangePasswordView
+)
 
 urlpatterns = [
     path('send_otp/', send_otp),
@@ -17,6 +25,18 @@ urlpatterns = [
     # Change password
     path("auth/request-otp-change-password/", RequestOTPChangePasswordView.as_view(), name="request-otp-change-password"),
     path("auth/verify-otp-change-password/", VerifyOTPChangePasswordView.as_view(), name="verify-otp-change-password"),
+
+    # Send email to change password
+    path("auth/forgot-password/", RequestEmailChangePasswordView.as_view(), name="forgot-password"),
+
+    # Verify OTP to reset password
+    path("auth/verify-otp-reset-password/", VerifyOtpResetPasswordView.as_view(), name="verify-otp-reset-password"),
+
+    # Resend OTP
+    path("auth/resend-otp/", ResendOtpView.as_view(), name="resend-otp"),
+
+    # Reset password for change password
+    path("auth/reset-password-for-change-password/", ResetPasswordForChangePasswordView.as_view(), name="reset-password-for-change-password"),
 
     # Authentication and Token Management
     path('logout/', LogoutView.as_view(), name='logout'),

@@ -40,6 +40,8 @@ export const logout = async (force = false) => {
     try {
         if (!force) {
             await raw.post("accounts/logout/");
+            localStorage.clear();
+            sessionStorage.clear();
         }
     } catch (err) {
         console.error("Logout error:", err);
@@ -92,6 +94,8 @@ api.interceptors.response.use(
                 
                 try {
                     await raw.post("accounts/logout/");
+                    localStorage.clear();
+                    sessionStorage.clear();
                 } catch (err) {
                     console.error("Force logout error:", err);
                 } finally {

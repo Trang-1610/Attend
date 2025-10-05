@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { Spin } from "antd";
 import { useAuth } from "../auth/AuthContext";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, initializing } = useAuth();
   const location = useLocation();
 
@@ -18,6 +18,10 @@ const ProtectedRoute = ({ children }) => {
         replace
       />
     );
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    return <Navigate to="/forbidden/pages/403" replace />;
   }
 
   return children;

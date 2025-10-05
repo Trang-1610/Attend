@@ -7,12 +7,13 @@ import { useWatch } from 'antd/es/form/Form';
 import dayjs from "dayjs";
 import SoundMessage from "../../../assets/sounds/message.mp3";
 import playSound from "../../../utils/playSound";
+import { useTranslation } from "react-i18next";
 
 const { Title } = Typography;
 
 export default function EventForm() {
     const [form] = Form.useForm();
-
+    const { t } = useTranslation();
     const [reminderData, setReminderData] = useState(null);
     const selectedSubject = useWatch('subject', form);
     const selectedRange = useWatch('rangeDate', form);
@@ -65,7 +66,7 @@ export default function EventForm() {
         };
 
         fetchReminderData();
-    }, [selectedSubject, form]);
+    }, [selectedSubject, form, t]);
 
     useEffect(() => {
         const fetchStudentSubject = async () => {
@@ -82,11 +83,11 @@ export default function EventForm() {
         };
 
         fetchStudentSubject();
-    });
+    }, []);
       
     return (
         <div className="w-full p-5 rounded-lg mt-6">
-            <Card title={<Title level={3}>Tạo thông tin sự kiện</Title>} className="p-2">
+            <Card title={<Title level={3}>{t("create event information")}</Title>} className="p-2">
                 <Form
                     form={form}
                     initialValues={{ variant: 'filled', emailNotification: 1 }}
@@ -141,7 +142,7 @@ export default function EventForm() {
 
                     <Form.Item className="">
                         <Button type="primary" htmlType="submit" size="large" className="w-full md:w-auto">
-                            Gửi sự kiện
+                            {t("send event")}
                         </Button>
                     </Form.Item>
                 </Form>

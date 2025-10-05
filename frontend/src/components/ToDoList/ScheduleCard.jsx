@@ -1,17 +1,19 @@
 import React from "react";
-import { Card, List, Spin, Typography, Button } from "antd";
+import { Card, List, Spin, Typography } from "antd";
 import { BookOutlined, ClockCircleOutlined, UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 
 const { Text } = Typography;
 
 export default function ScheduleCard({ loading, todaySchedules, openAttendanceModal }) {
+    const { t } = useTranslation();
     return (
         <Card
             className="rounded"
             title={
                 <div className="flex items-center gap-2">
-                    <BookOutlined /> Nhiệm vụ điểm danh hôm nay
+                    <BookOutlined /> {t("today's roll call mission")}
                 </div>
             }
         >
@@ -19,7 +21,7 @@ export default function ScheduleCard({ loading, todaySchedules, openAttendanceMo
                 <Spin />
             ) : todaySchedules.length === 0 ? (
                 <Text type="secondary">
-                    Hôm nay bạn không có lịch học nào 🎉
+                    {t("you don't have any classes today")} 🎉
                 </Text>
             ) : (
                 <List

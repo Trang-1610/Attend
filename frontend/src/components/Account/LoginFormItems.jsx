@@ -1,6 +1,7 @@
 import React from "react";
 import { Form, Input } from "antd";
-import { IdcardOutlined } from "@ant-design/icons";
+import Icon, { IdcardOutlined } from "@ant-design/icons";
+import {Icons} from "../Icons/Icons";
 
 const LoginFormItems = () => (
     <>
@@ -17,7 +18,7 @@ const LoginFormItems = () => (
         >
             <Input
                 size="large"
-                suffix={<IdcardOutlined />}
+                suffix={Icons.Phone}
                 placeholder="Nhập số điện thoại"
                 maxLength={10}
                 autoComplete="off"

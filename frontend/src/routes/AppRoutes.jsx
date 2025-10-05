@@ -15,6 +15,9 @@ import ChangePassword from "../pages/account/ChangePassword"; //
 import AccountInformation from "../pages/account/AccountInformation"; //
 import GeneralSetting from "../pages/general-setting/GeneralSetting";
 import AdminDashboard from "../pages/admin/Dashboard"; //
+import ForgotPassword from "../pages/account/ForgotPassword"; //
+import OtpVerifyResetPassword from "../pages/account/OtpVerifyResetPassword";
+import EntryPassword from "../pages/account/EntryPassword";
 
 import AttendanceQRCode from "../pages/attendance/AttendanceQRCode";
 import AttendanceFace from "../pages/attendance/AttendanceFace";
@@ -52,34 +55,41 @@ import ClassAssignment from "../pages/admin/students/ClassAssignment";
 import SubjectAssignment from "../pages/admin/lecturers/SubjectAssignment";
 import LecturerList from "../pages/admin/lecturers/LecturerList";
 
+import Error403 from "../components/403";
+
 const AppRoutes = () => {
     return (
         <Routes>
             <Route path="/account/login/*" element={<Login />} />
             <Route path="/account/signup/*" element={<Signup />} />
             <Route path="/account/verify-otp/*" element={<VerifyOtp />} />
-            <Route path="/" element={ <ProtectedRoute> <Home /> </ProtectedRoute> } />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/notifications/all" element={<ProtectedRoute><Notification /></ProtectedRoute>} />
-            <Route path="/introduction" element={<ProtectedRoute><Introduction /></ProtectedRoute>} />
-            <Route path="/to-do-list/today" element={<ProtectedRoute><ToDoList /></ProtectedRoute>} />
-            <Route path="/terms" element={<ProtectedRoute><Term /></ProtectedRoute>} />
-            <Route path="/add-event/add-reminder" element={<ProtectedRoute><AddReminder /></ProtectedRoute>} />
-            <Route path="/add-event/request-leave" element={<ProtectedRoute><AddRequestLeave /></ProtectedRoute>} />
-            <Route path="/add-event/request-leave/request" element={<ProtectedRoute><AddRequest /></ProtectedRoute>} />
+            <Route path="/" element={ <ProtectedRoute allowedRoles={["student"]}> <Home /> </ProtectedRoute> } />
+            <Route path="/contact" element={<ProtectedRoute allowedRoles={["student"]}><Contact /></ProtectedRoute>} />
+            <Route path="/notifications/all" element={<ProtectedRoute allowedRoles={["student"]}><Notification /></ProtectedRoute>} />
+            <Route path="/introduction" element={<ProtectedRoute allowedRoles={["student"]}><Introduction /></ProtectedRoute>} />
+            <Route path="/to-do-list/today" element={<ProtectedRoute allowedRoles={["student"]}><ToDoList /></ProtectedRoute>} />
+            <Route path="/terms" element={<ProtectedRoute allowedRoles={["student", "lecturer"]}><Term /></ProtectedRoute>} />
+            <Route path="/add-event/add-reminder" element={<ProtectedRoute allowedRoles={["student"]}><AddReminder /></ProtectedRoute>} />
+            <Route path="/add-event/request-leave" element={<ProtectedRoute allowedRoles={["student"]}><AddRequestLeave /></ProtectedRoute>} />
+            <Route path="/add-event/request-leave/request" element={<ProtectedRoute allowedRoles={["student"]}><AddRequest /></ProtectedRoute>} />
             <Route path="/account/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-            <Route path="/general-setting" element={<GeneralSetting />} />
-            <Route path="/account/information/update/*" element={<ProtectedRoute><AccountInformation /></ProtectedRoute>} />
-            <Route path="/attendance/statistics" element={<ProtectedRoute><AttendanceStatistics /></ProtectedRoute>} />
-            <Route path="/attendance/attendance-history" element={<ProtectedRoute><AttendanceHistory /></ProtectedRoute>} />
-            <Route path="/timetable" element={<ProtectedRoute><TimeTable /></ProtectedRoute>} />
-            <Route path="/profile/*" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/attendance/attendance-qr" element={<ProtectedRoute><AttendanceQRCode /></ProtectedRoute>} />
-            <Route path="/attendance/add-face" element={<ProtectedRoute><AttendanceFace /></ProtectedRoute>} />
+            <Route path="/general-setting" element={<ProtectedRoute allowedRoles={["student"]}><GeneralSetting /></ProtectedRoute>} />
+            <Route path="/account/information/update/*" element={<ProtectedRoute allowedRoles={["student"]}><AccountInformation /></ProtectedRoute>} />
+            <Route path="/attendance/statistics" element={<ProtectedRoute allowedRoles={["student"]}><AttendanceStatistics /></ProtectedRoute>} />
+            <Route path="/attendance/attendance-history" element={<ProtectedRoute allowedRoles={["student"]}><AttendanceHistory /></ProtectedRoute>} />
+            <Route path="/timetable" element={<ProtectedRoute allowedRoles={["student"]}><TimeTable /></ProtectedRoute>} />
+            <Route path="/profile/*" element={<ProtectedRoute allowedRoles={["student"]}><Profile /></ProtectedRoute>} />
+            <Route path="/attendance/attendance-qr" element={<ProtectedRoute allowedRoles={["student"]}e><AttendanceQRCode /></ProtectedRoute>} />
+            <Route path="/attendance/add-face" element={<ProtectedRoute allowedRoles={["student"]}><AttendanceFace /></ProtectedRoute>} />
+            <Route path="/account/forgot-password/*" element={<ForgotPassword />} />
+            <Route path="/account/otp-verify-reset-password/*" element={<OtpVerifyResetPassword />} />
+            <Route path="/account/entry-password/*" element={<EntryPassword />} />
+
+            <Route path="/forbidden/pages/403" element={<Error403 />} />
             <Route path="*" element={<ErrorPage />} />
 
             {/* Admin */}
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
 
             <Route path="/admin/management/students" element={<ProtectedRoute><StudentManagement /></ProtectedRoute>} />
             <Route path="/admin/management/students/create" element={<ProtectedRoute><StudentCreate /></ProtectedRoute>} />

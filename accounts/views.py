@@ -5,7 +5,11 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
 from .models import Account 
 from accounts.models import Role 
-from .serializers import AccountSerializer, AccountResetPassword, AccountResetPasswordLecturer, AccountListSerializer, RequestOTPChangePasswordSerializer, VerifyOTPChangePasswordSerializer
+from .serializers import (
+    AccountSerializer, AccountResetPassword, AccountResetPasswordLecturer, 
+    AccountListSerializer, RequestOTPChangePasswordSerializer, VerifyOTPChangePasswordSerializer,
+    RequestEmailChangePasswordSerializer, ResendOtpSerializer, ResetPasswordForChangePassword
+)
 from django.middleware.csrf import get_token
 import traceback
 from django.core.mail import send_mail
@@ -47,11 +51,21 @@ from django.contrib.auth import get_user_model
 from helper.get_client_ip import get_client_ip
 from rest_framework.authentication import BasicAuthentication
 from django.contrib.auth.models import Group
+from django.utils import timezone
+from datetime import timedelta
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.contrib.auth import logout
 
+# ==================================================
+# GET CSRF
+# ==================================================
 @ensure_csrf_cookie
 def get_csrf(request):
     return JsonResponse({'detail': 'CSRF cookie set'})
 
+# ==================================================
+# REFRESH TOKEN
+# ==================================================
 class RefreshTokenView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -91,15 +105,24 @@ class RefreshTokenView(APIView):
         except Exception:
             return Response({'error': 'Invalid refresh token'}, status=401)
 
+# ==================================================
+# Generate Password
+# ==================================================
 def generate_password(length=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
+# ==================================================
+# Verify CSRF
+# ==================================================
 @api_view(['GET'])
 @permission_classes([AllowAny])
 @ensure_csrf_cookie
 def csrf_cookie(request):
     return JsonResponse({'message': 'CSRF cookie set'})
 
+# ==================================================
+# Send OTP
+# ==================================================
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -212,7 +235,7 @@ def update_avatar(request, account_id):
     avatar_url = 'avatars/' + filename
     try:
         account = Account.objects.get(account_id=account_id)
-        account.avatar_url = avatar_url
+        account.avatar = avatar_url
         account.save()
     except Account.DoesNotExist:
         return JsonResponse({'error': 'Không tìm thấy tài khoản'}, status=404)
@@ -237,6 +260,9 @@ class LoginView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data['user']
             login(request, user)
+
+            # Send user_logged_in signal
+            # user_logged_in.send(sender=user.__class__, request=request, user=user)
 
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
@@ -290,6 +316,7 @@ class MeView(APIView):
         return Response({
             "account_id": user.account_id,
             "avatar": request.build_absolute_uri(user.avatar.url) if user.avatar else None,
+            "role": user.groups.first().name if user.groups.exists() else None,
         })
 # End me
 
@@ -298,6 +325,14 @@ class LogoutView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        user = getattr(request, "user", None)
+
+        # Send user_logged_out signal
+        if user and user.is_authenticated:
+            user_logged_out.send(sender=user.__class__, request=request, user=user)
+
+        logout(request)
+
         refresh_token = request.COOKIES.get("refresh_token")
         if refresh_token:
             try:
@@ -586,4 +621,68 @@ class VerifyOTPChangePasswordView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"detail": "Đổi mật khẩu thành công."}, status=status.HTTP_200_OK)
-# ================== END CHANGE PASSWORD ================== #
+# ==================================================
+# Send OTP for Change Password view
+# ==================================================
+class RequestEmailChangePasswordView(APIView):
+    """
+    User send email to change password and receive OTP via email
+    """
+    permission_classes = [AllowAny]
+    def post(self, request):
+        serializer = RequestEmailChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Đã gửi mã OTP đến địa chỉ email của bạn."},
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# ==================================================
+# Verify OTP view to reset password
+# ==================================================
+class VerifyOtpResetPasswordView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        email = request.data.get("email")
+        otp = request.data.get("otp")
+
+        try:
+            user = Account.objects.get(email=email)
+        except Account.DoesNotExist:
+            return Response({"success": False, "error": "Email không tồn tại"}, status=400)
+
+        # Check OTP 
+        if not user.otp_code or user.otp_code != otp:
+            return Response({"success": False, "error": "Mã OTP không đúng"}, status=400)
+
+        # Check OTP expiry
+        expiry_time = user.otp_created_at + timezone.timedelta(minutes=5)
+        if timezone.now() > expiry_time:
+            return Response({"success": False, "error": "Mã OTP đã hết hạn"}, status=400)
+
+        # Reset password if OTP is valid
+        return Response({"success": True, "message": "OTP hợp lệ."}, status=200)
+# ==================================================
+# Resend OTP
+# ==================================================
+class ResendOtpView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        serializer = ResendOtpSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": True, "message": "OTP mới đã được gửi qua email."}, status=status.HTTP_200_OK)
+        return Response({"success": False, "error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+# ==================================================
+# Reset password view for change password
+# ==================================================
+class ResetPasswordForChangePasswordView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ResetPasswordForChangePassword(data=request.data)
+        if serializer.is_valid():
+            result = serializer.save()
+            return Response(result, status=status.HTTP_200_OK)
+        return Response({"success": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,4 +1,16 @@
-from .utils import set_current_request, clear_current_request
+import threading
+
+_thread_local = threading.local()
+
+def set_current_request(request):
+    _thread_local.request = request
+
+def get_current_request():
+    return getattr(_thread_local, "request", None)
+
+def clear_current_request():
+    if hasattr(_thread_local, "request"):
+        del _thread_local.request
 
 class AuditLogMiddleware:
     def __init__(self, get_response):

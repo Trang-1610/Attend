@@ -66,8 +66,8 @@ export default function TimeTable() {
                     <div className="w-full px-2 mb-6">
                         <Breadcrumb
                             items={[
-                                { href: "/", title: <><HomeOutlined /> <span>{"Trang chủ"}</span></> },
-                                { href: "/timetable", title: <><ScheduleOutlined /> <span>{"Lịch học"}</span></> },
+                                { href: "/", title: <><HomeOutlined /> <span>{t("home")}</span></> },
+                                { href: "/timetable", title: <><ScheduleOutlined /> <span>{t("timetable")}</span></> },
                             ]}
                         />
                     </div>

@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Avatar, Button, Input, Typography, Select, DatePicker, message, Form, Alert } from "antd";
-import { UserOutlined } from "@ant-design/icons";
+import {
+    Avatar,
+    Button,
+    Input,
+    Typography,
+    Select,
+    DatePicker,
+    message,
+    Form,
+    Alert,
+    Upload,
+    Image,
+} from "antd";
+import { UserOutlined, UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import api from "../../api/axiosInstance";
 
@@ -9,16 +21,17 @@ const { Title } = Typography;
 export default function PersonalInfo({ formData, setFormData, accountId }) {
     const [isEditing, setIsEditing] = useState(false);
     const [form] = Form.useForm();
+    const [avatarUrl, setAvatarUrl] = useState(null);
+    const [fileList, setFileList] = useState([]);
 
-    const res = localStorage.getItem("user");
-    const user = JSON.parse(res);
-    const avatarUrl = user.avatar;
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const res = await api.get(`/students/${accountId}/`);
                 setFormData(res.data);
+                setAvatarUrl(res.data.avatar || user.avatar || null);
             } catch (err) {
                 if (err.response?.status === 404) {
                     setFormData(null);
@@ -28,11 +41,11 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                 }
             }
         };
-    
+
         if (accountId) {
             fetchData();
         }
-    }, [accountId, setFormData]);    
+    }, [accountId, setFormData]);
 
     const handleUpdate = async (values) => {
         try {
@@ -44,11 +57,9 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
 
             const res = await api.get(`/students/${accountId}/`);
             setFormData(res.data);
-
             setIsEditing(false);
         } catch (err) {
             console.error("Update error:", err.response?.data || err.message);
-
             if (err.response?.data?.dob) {
                 form.setFields([
                     {
@@ -62,6 +73,37 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
         }
     };
 
+    // ======== Upload Avatar ========
+    const handleUpload = async (options) => {
+        const { file, onSuccess, onError } = options;
+        const formData = new FormData();
+        formData.append("avatar", file);
+    
+        try {
+            const res = await api.post(`accounts/${accountId}/update_avatar/`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+    
+            const newAvatar = res.data.avatar_url;
+    
+            setAvatarUrl(newAvatar);
+            message.success("Cập nhật ảnh đại diện thành công!");
+    
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            const updatedUser = { ...user, avatar: newAvatar };
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+    
+            onSuccess("ok");
+        } catch (error) {
+            console.error(error);
+            message.error("Tải ảnh thất bại!");
+            onError(error);
+        }
+    };    
+
+    const handleChange = ({ fileList }) => setFileList(fileList.slice(-1));
+
+    // ======== Render ========
     if (!formData) {
         return (
             <div className="rounded-xl p-8 border">
@@ -81,36 +123,34 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                         Cập nhật ngay
                     </Button>
                 ) : (
-                    <Form
-                        layout="vertical"
-                        onFinish={handleUpdate}
-                        form={form}
-                        autoComplete="off"
-                    >
+                    <Form layout="vertical" onFinish={handleUpdate} form={form} autoComplete="off">
                         <Form.Item
                             name="fullname"
                             label="Họ và tên"
                             rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
                         >
-                            <Input size="large" style={{ borderWidth: 1.5, boxShadow: 'none' }} />
+                            <Input size="large" style={{ borderWidth: 1.5, boxShadow: "none" }} />
                         </Form.Item>
-    
+
                         <Form.Item
                             name="phone_number"
                             label="Số điện thoại"
                             rules={[{ required: true, message: "Vui lòng nhập số điện thoại!" }]}
                         >
-                            <Input size="large" style={{ borderWidth: 1.5, boxShadow: 'none' }} />
+                            <Input size="large" style={{ borderWidth: 1.5, boxShadow: "none" }} />
                         </Form.Item>
-    
+
                         <Form.Item
                             name="email"
                             label="Email"
-                            rules={[{ required: true, message: "Vui lòng nhập email!" }, { type: "email" }]}
+                            rules={[
+                                { required: true, message: "Vui lòng nhập email!" },
+                                { type: "email" },
+                            ]}
                         >
-                            <Input size="large" style={{ borderWidth: 1.5, boxShadow: 'none' }} />
+                            <Input size="large" style={{ borderWidth: 1.5, boxShadow: "none" }} />
                         </Form.Item>
-    
+
                         <Form.Item
                             name="gender"
                             label="Giới tính"
@@ -121,15 +161,19 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                                 <Select.Option value="0">Nữ</Select.Option>
                             </Select>
                         </Form.Item>
-    
+
                         <Form.Item
                             name="dob"
                             label="Ngày sinh"
                             rules={[{ required: true, message: "Vui lòng chọn ngày sinh!" }]}
                         >
-                            <DatePicker format="YYYY-MM-DD" size="large" style={{ width: "100%", borderWidth: 1.5, boxShadow: 'none' }} />
+                            <DatePicker
+                                format="YYYY-MM-DD"
+                                size="large"
+                                style={{ width: "100%", borderWidth: 1.5, boxShadow: "none" }}
+                            />
                         </Form.Item>
-    
+
                         <Button type="primary" size="large" onClick={() => form.submit()}>
                             Lưu thông tin
                         </Button>
@@ -137,24 +181,49 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                 )}
             </div>
         );
-    }    
+    }
 
     return (
         <div className="rounded-xl p-8 border">
             <Title level={4}>Thông tin cá nhân</Title>
+
             <div className="flex flex-col items-center mt-4">
                 {avatarUrl ? (
-                    <img
-                        src={avatarUrl}
-                        alt="Avatar"
-                        className="w-[100px] h-[100px] object-cover rounded-full mx-auto mb-4"
-                    />
+                    <>
+                        <Image
+                            src={avatarUrl}
+                            alt="Avatar"
+                            width={100}
+                            height={100}
+                            className="object-cover rounded-full"
+                        />
+                        <Upload
+                            customRequest={handleUpload}
+                            showUploadList={false}
+                            onChange={handleChange}
+                            fileList={fileList}
+                            accept="image/*"
+                        >
+                            <Button icon={<UploadOutlined />} className="mb-4 mt-4">Cập nhật ảnh mới</Button>
+                        </Upload>
+                    </>
                 ) : (
-                    <Avatar size={64} icon={<UserOutlined />} className="mx-auto mb-4" />
+                    <>
+                        <Avatar size={100} icon={<UserOutlined />} className="mx-auto mb-4" />
+                        <Upload
+                            customRequest={handleUpload}
+                            showUploadList={false}
+                            onChange={handleChange}
+                            fileList={fileList}
+                            accept="image/*"
+                        >
+                            <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
+                        </Upload>
+                    </>
                 )}
 
                 {!isEditing ? (
-                    <div className="w-full max-w-lg space-y-4 mt-4">
+                    <div className="w-full max-w-lg space-y-4 mt-6">
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-gray-500">Họ và tên</span>
                             <span className="font-medium">{formData?.fullname}</span>
@@ -173,7 +242,9 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                         </div>
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-gray-500">Giới tính</span>
-                            <span className="font-medium">{formData?.gender === '1' ? "Nam" : "Nữ"}</span>
+                            <span className="font-medium">
+                                {formData?.gender === "1" ? "Nam" : "Nữ"}
+                            </span>
                         </div>
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-gray-500">Ngày sinh</span>
@@ -199,14 +270,20 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                                 label="Họ và tên"
                                 rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
                             >
-                                <Input size="large" minLength={5} style={{ borderWidth: 1.5, boxShadow: "none" }} />
+                                <Input
+                                    size="large"
+                                    minLength={5}
+                                    style={{ borderWidth: 1.5, boxShadow: "none" }}
+                                />
                             </Form.Item>
 
-                            <Form.Item
-                                name="student_code"
-                                label="Mã số sinh viên"
-                            >
-                                <Input size="large" disabled style={{ borderWidth: 1.5, boxShadow: "none" }} minLength={8} />
+                            <Form.Item name="student_code" label="Mã số sinh viên">
+                                <Input
+                                    size="large"
+                                    disabled
+                                    style={{ borderWidth: 1.5, boxShadow: "none" }}
+                                    minLength={8}
+                                />
                             </Form.Item>
 
                             <Form.Item
@@ -221,7 +298,12 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                                     },
                                 ]}
                             >
-                                <Input size="large" style={{ borderWidth: 1.5, boxShadow: "none" }} minLength={10} maxLength={10} />
+                                <Input
+                                    size="large"
+                                    style={{ borderWidth: 1.5, boxShadow: "none" }}
+                                    minLength={10}
+                                    maxLength={10}
+                                />
                             </Form.Item>
 
                             <Form.Item
@@ -232,7 +314,11 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                                     { type: "email", message: "Email không hợp lệ!" },
                                 ]}
                             >
-                                <Input size="large" type="email" style={{ borderWidth: 1.5, boxShadow: "none" }} />
+                                <Input
+                                    size="large"
+                                    type="email"
+                                    style={{ borderWidth: 1.5, boxShadow: "none" }}
+                                />
                             </Form.Item>
 
                             <Form.Item
@@ -241,8 +327,9 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                                 rules={[{ required: true, message: "Vui lòng chọn giới tính!" }]}
                             >
                                 <Select size="large" className="w-full custom-select">
-                                    <Select.Option value="1">Nam</Select.Option>
-                                    <Select.Option value="0">Nữ</Select.Option>
+                                    <Select.Option value="M">Nam</Select.Option>
+                                    <Select.Option value="F">Nữ</Select.Option>
+                                    <Select.Option value="O">Khác</Select.Option>
                                 </Select>
                             </Form.Item>
 
@@ -251,7 +338,11 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                                 label="Ngày sinh"
                                 rules={[{ required: true, message: "Vui lòng chọn ngày sinh!" }]}
                             >
-                                <DatePicker format="YYYY-MM-DD" size="large" style={{ width: "100%", borderWidth: 1.5, boxShadow: "none" }} />
+                                <DatePicker
+                                    format="YYYY-MM-DD"
+                                    size="large"
+                                    style={{ width: "100%", borderWidth: 1.5, boxShadow: "none" }}
+                                />
                             </Form.Item>
                         </Form>
                     </div>
@@ -276,7 +367,6 @@ export default function PersonalInfo({ formData, setFormData, accountId }) {
                         Cập nhật
                     </Button>
                 )}
-
             </div>
         </div>
     );

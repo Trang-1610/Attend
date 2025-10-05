@@ -219,16 +219,19 @@ class StudentUpdateAPIView(APIView):
         except Account.DoesNotExist:
             return Response({"error": "Account không tồn tại"}, status=status.HTTP_404_NOT_FOUND)
 
-        if hasattr(account, "student") and account.student is not None:
-            return Response(
-                {"message": "Sinh viên đã tồn tại, không thể thêm mới"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         serializer = StudentUpdateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.update(account, serializer.validated_data)
-            return Response({"message": "Thêm sinh viên thành công"}, status=status.HTTP_201_CREATED)
+            # Check if student already exists
+            if hasattr(account, "student") and account.student is not None:
+                serializer.update(account, serializer.validated_data)
+                return Response({"message": "Cập nhật sinh viên thành công"}, status=status.HTTP_200_OK)
+            else:
+                # If not, create a new student
+                Student.objects.create(
+                    account=account,
+                    **serializer.validated_data
+                )
+                return Response({"message": "Thêm sinh viên thành công"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # ==================================================

@@ -6,25 +6,32 @@ import {
     RightOutlined,
     HomeOutlined,
     SnippetsOutlined,
-    UnlockOutlined
+    UnlockOutlined,
+    AuditOutlined
 } from "@ant-design/icons";
 import { Avatar, Breadcrumb, message, Alert } from "antd";
 import Footer from "../../components/Layout/Footer";
 import PersonalInfo from "../../components/Profile/PersonalInfo";
-import ChangePasswordForm from "../../components/Profile/ChangePasswordForm";
 import LogoutTab from "../../components/Profile/LogoutTab";
 import GuideTab from "../../components/Profile/GuideTab";
+import LoginLog from "../../components/Profile/LoginLog";
 import api from "../../api/axiosInstance";
 import Header from "../../components/Layout/Header";
+import { useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 
 const menuItems = [
     { key: "personal", label: "Thông tin cá nhân", icon: <UserOutlined /> },
     { key: "changePassword", label: "Đổi mật khẩu", icon: <UnlockOutlined /> },
+    { key: "login_log", label: "Nhật ký đăng nhập", icon: <AuditOutlined /> },
     { key: "guide", label: "Hướng dẫn sử dụng", icon: <QuestionCircleOutlined /> },
     { key: "logout", label: "Đăng xuất", icon: <LogoutOutlined />, danger: true },
 ];
 
+const randomId = uuidv4();
+
 export default function ProfilePage() {
+    const navigate = useNavigate();
     const [selectedKey, setSelectedKey] = useState("personal");
     const [formData, setFormData] = useState(null);
 
@@ -59,11 +66,15 @@ export default function ProfilePage() {
                 );
             case "changePassword":
                 return (
-                    <ChangePasswordForm />
+                    navigate("/account/forgot-password/?redirect=" + randomId)
                 );
             case "guide":
                 return (
                     <GuideTab />
+                );
+            case "login_log":
+                return (
+                    <LoginLog />
                 );
             case "logout":
                 return (

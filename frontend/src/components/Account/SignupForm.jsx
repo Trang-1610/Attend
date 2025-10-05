@@ -33,7 +33,7 @@ export default function SignupForm({ onFinish, loading, apiErrors, randomId }) {
 
             <div className="text-center">
                 <span className="text-gray-600">Bạn đã có tài khoản? </span>
-                <a href={`/account/login/${randomId}`} className="text-blue-600 hover:underline">
+                <a href={`/account/login/?redirect=${randomId}`} className="text-blue-600 hover:underline">
                     Đăng nhập
                 </a>
             </div>

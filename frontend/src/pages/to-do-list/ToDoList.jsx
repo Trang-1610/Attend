@@ -192,7 +192,7 @@ export default function ToDoList() {
                                     href: "/",
                                     title: (
                                         <>
-                                            <HomeOutlined /> <span>Trang chủ</span>
+                                            <HomeOutlined /> <span>{t("home")}</span>
                                         </>
                                     ),
                                 },

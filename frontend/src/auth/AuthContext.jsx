@@ -31,6 +31,17 @@ export const AuthProvider = ({ children }) => {
             return;
         }
 
+        // const storedUser = localStorage.getItem("user");
+        // if (storedUser) {
+        //     try {
+        //         setUser(JSON.parse(storedUser));
+        //         setInitializing(false);
+        //         return;
+        //     } catch (e) {
+        //         console.error("Error parsing user:", e);
+        //     }
+        // }
+
         fetchMe();
     }, []);
 

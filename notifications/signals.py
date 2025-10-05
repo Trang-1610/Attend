@@ -6,11 +6,13 @@ from accounts.models import Account
 from audit.models import AuditLog
 import json
 from django.db.models.signals import post_save
-from lecturers.models import Lecturer
 from attend3d.middleware.thread_local import get_current_request
 from helper.get_client_ip import get_client_ip
-from lecturers.models import LecturerSubject, SubjectClass
+from lecturers.models import LecturerSubject, SubjectClass, Lecturer
 from leaves.models import LeaveRequest
+from contact.models import Contact
+from students.models import Student
+from staffs.models import Staff
 
 # ==================================================
 # Create notification when user login
@@ -88,3 +90,63 @@ def create_notification_for_leave_request(sender, instance, created, **kwargs):
             created_by=instance.student.account,
             to_target=instance.student.account
         )
+# ==================================================
+# Create notification when contact is created
+# ==================================================
+@receiver(post_save, sender=Contact)
+def create_contact_notification(sender, instance, created, **kwargs):
+    """
+    Automatically generate 3 types of notifications when STUDENTS send contacts:
+    1. For lecturers or admins receiving contacts
+    2. For admins (to track new contacts)
+    3. For students themselves (confirmation sent)
+    """
+    if not created:
+        return
+
+    try:
+        # 1. Identify the sender (student)
+        student = instance.from_person
+        if not student or not hasattr(student, 'account'):
+            print(f"[Signal Skip] Người gửi không phải sinh viên, contact_id={instance.contact_id}")
+            return
+
+        created_by_account = student.account
+
+        # 2. Identify contact recipients
+        to_account = None
+        to_name = None
+
+        if instance.type_person_contact == Contact.TypePersonContact.LECTURER:
+            lecturer = Lecturer.objects.select_related('account').filter(lecturer_id=instance.to_person_id).first()
+            if lecturer:
+                to_account = lecturer.account
+                to_name = lecturer.fullname
+
+        elif instance.type_person_contact == Contact.TypePersonContact.ADMIN:
+            staff = Staff.objects.select_related('account').filter(staff_id=instance.to_person_id).first()
+            if staff:
+                to_account = staff.account
+                to_name = staff.fullname
+
+        # 3. Notify recipient (instructor or admin)
+        if to_account:
+            Notification.objects.create(
+                title=f"Liên hệ mới từ {student.fullname}",
+                content=f"Sinh viên {student.fullname} vừa gửi liên hệ về: {instance.subject}",
+                created_by=created_by_account,
+                to_target=to_account,
+            )
+
+        # 4. Notice to students (confirmed sent)
+        Notification.objects.create(
+            title=f"Bạn đã gửi liên hệ đến {to_name or 'bộ phận liên quan'}",
+            content=f"Liên hệ của bạn về {instance.subject or 'Admin hệ thống'} đã được gửi thành công.",
+            created_by=created_by_account,
+            to_target=created_by_account,
+        )
+
+        print(f"[Signal Success] Tạo thông báo thành công cho contact_id={instance.contact_id}")
+
+    except Exception as e:
+        print(f"[Signal Error] Không thể tạo notification cho contact_id={instance.contact_id}: {e}")

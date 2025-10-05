@@ -3,16 +3,18 @@ import { Card, List, Typography, Tag, Button, Tooltip } from "antd";
 import { CheckSquareOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import TaskList from "../../components/ToDoList/TaskList";
+import { useTranslation } from "react-i18next";
 
 const { Text } = Typography;
 
 export default function ReminderCard({ reminders, openEditModal, newTask, setNewTask, addTask, tasks, toggleTask, deleteTask }) {
+    const { t } = useTranslation();
     return (
         <Card
             className="rounded"
             title={
                 <div className="flex items-center gap-2">
-                    <CheckSquareOutlined /> Nhiệm vụ khác
+                    <CheckSquareOutlined /> {t("other missions")}
                 </div>
             }
         >
@@ -31,14 +33,14 @@ export default function ReminderCard({ reminders, openEditModal, newTask, setNew
                                     !canEdit ? (
                                         <Tooltip
                                             placement="top"
-                                            title="Do thông báo sẽ gửi tự động qua email nên không thể sửa trong 60 phút còn lại."
+                                            title={t("since the notification will be sent automatically via email, it cannot be edited within the remaining 60 minutes")}
                                         >
                                             <Button
                                                 type="link"
                                                 onClick={() => openEditModal(rem)}
                                                 disabled
                                             >
-                                                Sửa
+                                                {t("edit")}
                                             </Button>
                                         </Tooltip>
                                     ) : (
@@ -46,7 +48,7 @@ export default function ReminderCard({ reminders, openEditModal, newTask, setNew
                                             type="link"
                                             onClick={() => openEditModal(rem)}
                                         >
-                                            Sửa
+                                            {t("edit")}
                                         </Button>
                                     ),
                                 ]}                            

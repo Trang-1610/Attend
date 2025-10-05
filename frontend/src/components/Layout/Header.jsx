@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Button, Avatar, Dropdown, message, Popover, Badge, Drawer, Menu, Modal } from "antd";
-import { HomeOutlined, PhoneOutlined, ScanOutlined, SettingOutlined, MenuOutlined, UserOutlined, LoginOutlined, BarChartOutlined, PlusCircleOutlined, WechatWorkOutlined, AuditOutlined, LogoutOutlined, UserSwitchOutlined, ScheduleOutlined, BellOutlined, } from "@ant-design/icons";
+import { PhoneOutlined, ScanOutlined, SettingOutlined, MenuOutlined, UserOutlined, LoginOutlined, BarChartOutlined, PlusCircleOutlined, WechatWorkOutlined, AuditOutlined, LogoutOutlined, UserSwitchOutlined, BellOutlined, } from "@ant-design/icons";
 
 import Logo from "../../assets/general/face-recognition.png";
 import i18n from "i18next";
@@ -10,6 +10,7 @@ import { logout } from "../../utils/auth";
 import { useLocation } from "react-router-dom";
 import SoundMessage from "../../assets/sounds/message.mp3";
 import playSound from "../../utils/playSound";
+import {Icons} from "../Icons/Icons";
 
 export default function Header() {
     const [openDrawer, setOpenDrawer] = useState(false);
@@ -84,7 +85,7 @@ export default function Header() {
     //     const socket = new WebSocket("ws://127.0.0.1:8000/ws/notifications/" + user.account_id + "/");
 
     //     socket.onopen = () => {
-    //         console.log("🔌 WebSocket connected");
+    //         console.log("WebSocket connected");
     //     };
 
     //     socket.onmessage = (event) => {
@@ -120,6 +121,8 @@ export default function Header() {
                     await logout();
                     message.success("Đăng xuất thành công");
                     window.location.href = "/account/login";
+                    localStorage.clear();
+                    sessionStorage.clear();
                 } catch (err) {
                     message.error("Có lỗi khi đăng xuất");
                 }
@@ -130,17 +133,17 @@ export default function Header() {
     const items = [
         {
             key: "home",
-            icon: <HomeOutlined />,
+            icon: Icons.Home,
             label: <a href="/">{t("home")}</a>,
         },
         {
             key: "timetable",
-            icon: <ScheduleOutlined />,
+            icon: Icons.Schedule,
             label: <a href="/timetable">{t("timetable")}</a>,
         },
         {
             key: "user",
-            icon: <UserOutlined />,
+            icon: Icons.Setting,
             label: t("setting"),
             children: !user
                 ? [
@@ -209,17 +212,7 @@ export default function Header() {
             key: "language",
             label: (
                 <span className="inline-flex items-center gap-2">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="currentColor"
-                        className="bi bi-translate"
-                        viewBox="0 0 16 16"
-                    >
-                        <path d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286zm1.634-.736L5.5 3.956h-.049l-.679 2.022z"/>
-                        <path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zm7.138 9.995q.289.451.63.846c-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.047h.765c-.318.844-.74 1.546-1.272 2.13a6 6 0 0 1-.415-.492 2 2 0 0 1-.94.31"/>
-                    </svg>
+                    {Icons.Language}
                     {t("language")}
                 </span>
             ),
@@ -325,40 +318,6 @@ export default function Header() {
                 />
 
                 <div className="space-x-4 flex-shrink-0 flex items-center">
-                    {/* {!user ? (
-                        <Button icon={<LoginOutlined />} type="primary" size="middle" href="/account/login">
-                            {t("login")}
-                        </Button>
-                    ) : (
-                        <>
-                            <Popover
-                                content={notificationContent}
-                                title="Thông báo"
-                                trigger="hover"
-                                placement="bottomRight"
-                                className="max-w-xs"
-                            >
-                                <Badge count={notifications.length} size="small">
-                                    <BellOutlined style={{ fontSize: 20, cursor: "pointer" }} />
-                                </Badge>
-                            </Popover>
-
-                            <Dropdown trigger={["hover"]} placement="bottomRight" menu={{ items: userMenuItems }}>
-                                <div className="flex items-center gap-2 cursor-pointer">
-                                    {user?.avatar ? (
-
-                                        <img
-                                            src={user?.avatar}
-                                            alt="Avatar"
-                                            className="h-10 w-10 rounded-full object-cover"
-                                        />
-                                    ) : (
-                                        <Avatar icon={<UserOutlined />} />
-                                    )}
-                                </div>
-                            </Dropdown>
-                        </>
-                    )} */}
                     <>
                         <Popover
                             content={notificationContent}

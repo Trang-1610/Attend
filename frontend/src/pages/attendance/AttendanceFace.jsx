@@ -3,13 +3,14 @@ import { Button, Result } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import CHPlayLogo from '../../assets/general/logo-ch-play.png';
 import AppStoreLogo from '../../assets/general/logo-apple-store.svg';
+import { useTranslation } from "react-i18next";
 
 const AttendanceFace = () => {
     const navigate = useNavigate();
-
+    const { t } = useTranslation();
     useEffect(() => {
-        document.title = "ATTEND 3D - Điểm danh khuôn mặt";
-    }, []);
+        document.title = "ATTEND 3D - " + t("attendance face");
+    }, [t]);
 
     return (
         <div className="flex items-center justify-center h-screen px-4 bg-white text-gray-800 dark:bg-black dark:text-white">
@@ -18,14 +19,14 @@ const AttendanceFace = () => {
                 title="Warning"
                 subTitle={
                     <div className="text-base text-gray-600">
-                        Chức năng này không được phép thực hiện trên website.<br />
-                        Vui lòng tải ứng dụng di động để tiếp tục sử dụng.
+                        {t("this function is not allowed on the website")}.<br />
+                        {t("please download the mobile app to continue using")}.
                     </div>
                 }
                 extra={
                     <div className="flex flex-col items-center gap-6 mt-6">
                         <Button type="primary" onClick={() => navigate('/')} size="large">
-                            Trở về trang chủ
+                            {t("return to home page")}
                         </Button>
 
                         <div className="flex items-center gap-4">

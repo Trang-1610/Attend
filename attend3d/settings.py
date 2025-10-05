@@ -54,10 +54,12 @@ INSTALLED_APPS = [
     'accounts',
     'attendance',
     'audit',
+    # "audit.apps.AuditConfig",
     'media',
     'classes',
     'leaves',
     'lecturers',
+    'contact',
     
     'notifications',
     # 'notifications.apps.NotificationsConfig',

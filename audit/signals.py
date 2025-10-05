@@ -8,7 +8,10 @@ from .models import AuditLog
 from accounts.models import Account 
 from decimal import Decimal
 from django.db.models import FileField
-from .utils import get_current_user, get_current_request, safe_model_to_dict
+from .utils import (
+    get_current_user, get_current_request, safe_model_to_dict, 
+    get_location, get_device_and_location, get_device_info, send_login_email
+)
 from helper.get_client_ip import get_client_ip
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from .models import LoginLog
@@ -22,7 +25,9 @@ import datetime
 import decimal
 import uuid
 from django.db.models.fields.files import FieldFile
+import logging
 
+logger = logging.getLogger(__name__)
 _old_instance_cache = {}
 _PREVIOUS_STATE = {}
 
@@ -72,21 +77,33 @@ def after_leave_request_save(sender, instance, created, **kwargs):
 @receiver(user_logged_in)
 def log_user_login(sender, request, user, **kwargs):
     try:
+        ip = get_client_ip(request)
+        device = get_device_info(request)
+        location = get_location(ip)
+        info = get_device_and_location(request)
+
         LoginLog.objects.create(
             account=user if isinstance(user, Account) else None,
             status=LoginLog.Status.SUCCESS,
-            ip_address=get_client_ip(request),
+            ip_address=ip,
             user_agent=request.META.get("HTTP_USER_AGENT", ""),
             device_info={
+                **device,
                 "path": request.path,
                 "method": request.method,
                 "is_secure": request.is_secure(),
-                "remote_host": request.META.get("REMOTE_HOST", ""),
+                # "location": location,
+                "device_info": info,
             },
         )
+
+        # User belongs to staff or superuser do not send email
+        # if not user.is_staff and not user.is_superuser:
+        #     send_login_email(user, ip_address, device)
+        send_login_email(user, ip, device, location)
+
     except Exception as e:
         logger.error(f"Failed to log user login: {e}")
-
 
 # ==================================================
 # Log failed login
@@ -107,25 +124,35 @@ def log_user_login_failed(sender, credentials, request, **kwargs):
         )
     except Exception as e:
         logger.error(f"Failed to log user login failed: {e}")
-
-
 # ==================================================
 # Log logout (update logout_time of last session)
 # ==================================================
 @receiver(user_logged_out)
 def log_user_logout(sender, request, user, **kwargs):
     try:
+        # If user is not authenticated, return without logging
+        if not isinstance(user, Account):
+            logger.warning("User is not authenticated during logout.")
+            return
+
+        # Get the last active login log
         last_log = (
             LoginLog.objects.filter(
-                account=user if isinstance(user, Account) else None,
+                account=user,
                 status=LoginLog.Status.SUCCESS,
+                logout_time__isnull=True,
             )
-            .latest("login_time")
+            .order_by("-login_time")
+            .first()
         )
-        last_log.logout_time = now()
-        last_log.save(update_fields=["logout_time"])
-    except LoginLog.DoesNotExist:
-        logger.warning(f"No login log found for logout of user {user}")
+
+        if last_log:
+            last_log.logout_time = now()
+            last_log.save(update_fields=["logout_time"])
+            logger.info(f"Logout time recorded for user {user.email}")
+        else:
+            logger.warning(f"No active login log found for user {user.email}")
+
     except Exception as e:
         logger.error(f"Failed to log user logout: {e}")
 # ==================================================

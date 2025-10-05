@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
 from helper.generate_random_code import generate_random_code
+from django.utils import timezone
+from datetime import timedelta
 
 # =======================
 # Account Manager
@@ -60,6 +62,8 @@ class Account(AbstractBaseUser, PermissionsMixin):
     updated_at = models.DateTimeField(auto_now=True)
     last_login_at = models.DateTimeField(auto_now=True)  # auto update when login
     deleted_at = models.DateTimeField(null=True, blank=True)
+    otp_code = models.CharField(max_length=6, blank=True, null=True)
+    otp_created_at = models.DateTimeField(blank=True, null=True)
 
     objects = AccountManager()
 
@@ -85,6 +89,13 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def has_permission(self, codename: str) -> bool:
         return self.user_permissions.filter(codename=codename).exists() or \
                self.groups.filter(permissions__codename=codename).exists()
+    
+    def is_otp_valid(self, otp):
+        if not self.otp_code or not self.otp_created_at:
+            return False
+        if self.otp_code != otp:
+            return False
+        return timezone.now() - self.otp_created_at <= timedelta(minutes=5)
 
 # =======================
 # Extend Group (Role) with metadata

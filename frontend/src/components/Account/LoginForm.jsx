@@ -72,7 +72,7 @@ const LoginForm = ({ messageApi, executeRecaptcha, navigate, randomId, loading, 
             <div className="text-center">
                 <span className="text-gray-600">Chưa có tài khoản? </span>
                 <a
-                    href={`/account/signup/${randomId}`}
+                    href={`/account/signup/?redirect=${randomId}`}
                     className="text-blue-600 hover:underline"
                 >
                     Đăng ký

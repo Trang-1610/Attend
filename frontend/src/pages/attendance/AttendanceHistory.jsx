@@ -14,8 +14,10 @@ import { HomeOutlined, CalendarOutlined } from "@ant-design/icons";
 import Header from "../../components/Layout/Header";
 import Footer from "../../components/Layout/Footer";
 import api from "../../api/axiosInstance";
+import { useTranslation } from "react-i18next";
 
 export default function AttendanceHistory() {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [summary, setSummary] = useState([]);
     const [selectedRecord, setSelectedRecord] = useState(null);
@@ -46,17 +48,17 @@ export default function AttendanceHistory() {
                 message.error("Không thể tải dữ liệu lịch sử điểm danh");
             })
             .finally(() => setLoading(false));
-    }, [accountId]);
+    }, [accountId, t]);
 
     // Table columns
     const columns = [
         {
-            title: "Mã điểm danh",
+            title: t("attendance code"),
             dataIndex: "attendance_code",
             key: "attendance_code",
         },
         {
-            title: "Trạng thái",
+            title: t("status"),
             dataIndex: "status",
             key: "status",
             render: (value) => {
@@ -68,18 +70,18 @@ export default function AttendanceHistory() {
             }            
         },
         {
-            title: "Môn học",
+            title: t("subject"),
             dataIndex: "subject_name",
             key: "subject_name",
         },
         {
-            title: "Thời gian điểm danh",
+            title: t("check in at"),
             dataIndex: "checkin_at",
             key: "checkin_at",
             render: (value) => (value ? new Date(value).toLocaleString("vi-VN") : "-"),
         },
         {
-            title: "Thao tác",
+            title: t("action"),
             key: "actions",
             render: (_, record) => (
                 <Button
@@ -107,7 +109,7 @@ export default function AttendanceHistory() {
                                     href: "/",
                                     title: (
                                         <>
-                                            <HomeOutlined /> <span>Trang chủ</span>
+                                            <HomeOutlined /> <span>{t("home")}</span>
                                         </>
                                     ),
                                 },
@@ -115,7 +117,7 @@ export default function AttendanceHistory() {
                                     href: "/attendance/attendance-history",
                                     title: (
                                         <>
-                                            <CalendarOutlined /> <span>Lịch sử điểm danh</span>
+                                            <CalendarOutlined /> <span>{t("attendance history")}</span>
                                         </>
                                     ),
                                 },
@@ -124,7 +126,7 @@ export default function AttendanceHistory() {
                     </div>
 
                     <div className="w-full mt-4">
-                        <Card title="Lịch sử điểm danh" className="rounded">
+                        <Card title={t("attendance history")} className="rounded">
                             {loading ? (
                                 <div className="flex justify-center p-6">
                                     <Spin />

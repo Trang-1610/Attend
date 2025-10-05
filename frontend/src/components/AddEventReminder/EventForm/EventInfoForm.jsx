@@ -2,13 +2,14 @@ import React from "react";
 import { Form, Input, DatePicker, Radio, Typography } from "antd";
 import dayjs from "dayjs";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { useTranslation } from "react-i18next";
 
 dayjs.extend(customParseFormat);
 const { RangePicker } = DatePicker;
 const { Title } = Typography;
 
 export default function EventInfoForm({ reminderData, form, selectedSubject }) {
-    
+    const { t } = useTranslation();
     const options = [
         { label: 'Email', value: 1 },
         { label: 'SMS', value: 2, disabled: true },
@@ -17,35 +18,35 @@ export default function EventInfoForm({ reminderData, form, selectedSubject }) {
 
     return (
         <div className="p-4">
-            <Title level={4}>Thông tin sự kiện</Title>
+            <Title level={4}>{t("event information")}</Title>
 
             <Form.Item
-                label="Tiêu đề sự kiện"
+                label={t("title")}
                 name="title"
-                rules={[{ required: true, message: 'Vui lòng nhập tiêu đề sự kiện!' }]}
+                rules={[{ required: true, message: t("please enter event title") }]}
             >
                 <Input 
                     size="large" 
-                    placeholder="Nhập tiêu đề sự kiện" 
+                    placeholder={t("enter event title")}
                     style={{ borderWidth: 1.5, boxShadow: 'none' }} 
                     value={" Nhắc nhở"}
                 />
             </Form.Item>
 
             <Form.Item
-                label="Nội dung sự kiện"
+                label={t("content")}
                 name="content"
-                rules={[{ required: true, message: 'Vui lòng nhập nội dung sự kiện!' }]}
+                rules={[{ required: true, message: t("please enter event content") }]}
             >
-                <Input.TextArea size="large" placeholder="Nhập nội dung sự kiện" rows={5} style={{ borderWidth: 1.5, boxShadow: 'none' }} />
+                <Input.TextArea size="large" placeholder={t("enter event content")} rows={5} style={{ borderWidth: 1.5, boxShadow: 'none' }} />
             </Form.Item>
 
             <Form.Item
-                label="Thời gian nhắc nhở sự kiện"
+                label={t("event reminder time")}
                 initialValue={null}
                 name="rangeDate"
                 rules={[
-                    { required: true, message: "Vui lòng chọn thời gian!" },
+                    { required: true, message: t("please select a time") },
                     {
                         validator: (_, value) => {
                             if (!value || !reminderData) return Promise.resolve();
@@ -102,7 +103,7 @@ export default function EventInfoForm({ reminderData, form, selectedSubject }) {
                     format="HH:mm DD/MM/YYYY"
                     className="w-full"
                     style={{ borderWidth: 1.5, boxShadow: "none" }}
-                    placeholder={["Ngày bắt đầu", "Ngày kết thúc"]}
+                    placeholder={[t("start date"), t("end date")]}
                 />
             </Form.Item>
             <Form.Item 
@@ -111,7 +112,7 @@ export default function EventInfoForm({ reminderData, form, selectedSubject }) {
                 initialValue={1} 
             >
                 <label>
-                    <span className="text-red-500">*</span> Hình thức nhắc nhở:
+                    <span className="text-red-500">*</span> {t("reminder form")}:
                 </label>
                 <Radio.Group options={options} defaultValue={1} className="ms-4" />
             </Form.Item>

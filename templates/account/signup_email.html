@@ -3,45 +3,188 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mã OTP - ATTEND 3D</title>
-  </head>
-  <body>
-    <table>
-      <tr>
-        <td align="center">
-          <h1>ATTEND 3D</h1>
-          <p>Thông báo đăng ký thành công</p>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <h2>Xin chào!</h2>
-          <p>Bạn đã đăng ký thành công vào hệ thống lúc {{ datelogin }}</p>
+    <title>Thông báo đăng ký thành công - ATTEND 3D</title>
 
-          <p>Thông tin đăng ký:</p>
-          <ul>
-            <li>Tài khoản: {{ user_email }}</li>
-            <li>Địa chỉ IP: {{ ip_address }}</li>
-            <li>Thiết bị: {{ device_info }}</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <p>Trân trọng,</p>
-          <p><strong>ATTEND 3D</strong></p>
-          <p>Website: <a href="https://attend3d.io">attend3d.io</a></p>
-          <p>Phone number: 0825 025 347</p>
-          <p>
-            Email:
-            <a href="mailto:zephyrnguyen.vn@gmail.com"
-              >zephyrnguyen.vn@gmail.com</a
-            >
-          </p>
-          <hr />
-          <p>&copy; 2025 ATTEND 3D. All rights reserved.</p>
-        </td>
-      </tr>
-    </table>
+    <!-- Font Quicksand -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        background-color: #f6f8fb;
+        font-family: "Quicksand", sans-serif;
+        margin: 0;
+        padding: 0;
+        color: #333;
+      }
+
+      .container {
+        max-width: 600px;
+        background: #ffffff;
+        margin: 60px auto;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+      }
+
+      /* Header */
+      .header {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: #ffffff;
+        text-align: center;
+        padding: 28px 20px;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      .header p {
+        margin: 6px 0 0;
+        font-size: 15px;
+        opacity: 0.9;
+      }
+
+      /* Content */
+      .content {
+        padding: 36px 42px;
+      }
+
+      .content h2 {
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: #1e40af;
+      }
+
+      .content p {
+        font-size: 15px;
+        line-height: 1.8;
+        margin: 12px 0;
+        color: #444;
+      }
+
+      .info-list {
+        background: #f9fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: 20px 0;
+      }
+
+      .info-list li {
+        margin: 6px 0;
+        font-size: 15px;
+      }
+
+      /* Button */
+      .btn-container {
+        text-align: center;
+        margin: 35px 0 20px;
+      }
+
+      .btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: #fff;
+        text-decoration: none;
+        padding: 12px 36px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 15px;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+      }
+
+      /* Footer */
+      .footer {
+        background-color: #f9fafc;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+        padding: 24px;
+        font-size: 13px;
+        color: #777;
+      }
+
+      .footer p {
+        margin: 6px 0;
+      }
+
+      .footer a {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+
+      .footer strong {
+        color: #2563eb;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>ATTEND 3D</h1>
+        <p>Thông báo đăng ký thành công</p>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <h2>Xin chào!</h2>
+        <p>
+          Bạn đã đăng ký thành công vào hệ thống lúc
+          <strong>{{ datelogin }}</strong>.
+        </p>
+
+        <p>Thông tin đăng ký:</p>
+        <ul class="info-list">
+          <li><strong>Tài khoản:</strong> {{ user_email }}</li>
+          <li><strong>Địa chỉ IP:</strong> {{ ip_address }}</li>
+          <li><strong>Thiết bị:</strong> {{ device_info }}</li>
+        </ul>
+
+        <p>
+          Chào mừng bạn đến với <strong>ATTEND 3D</strong>!  
+          Hãy đăng nhập và bắt đầu sử dụng các tính năng của hệ thống ngay hôm nay.
+        </p>
+
+        <div class="btn-container">
+          <a href="https://attend3d.io/account/login" class="btn">
+            Đăng nhập ngay
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p><strong>ATTEND 3D</strong></p>
+        <p>
+          Website: <a href="https://attend3d.io">attend3d.io</a> |
+          Phone: 0825&nbsp;025&nbsp;347
+        </p>
+        <p>
+          Email:
+          <a href="mailto:zephyrnguyen.vn@gmail.com"
+            >zephyrnguyen.vn@gmail.com</a
+          >
+        </p>
+        <p>&copy; 2025 ATTEND 3D. All rights reserved.</p>
+      </div>
+    </div>
   </body>
 </html>

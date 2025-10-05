@@ -1,45 +1,86 @@
 import React, { useEffect, useState } from "react";
-import { Button, Form, Input, Typography, Card, Breadcrumb, Select, Row, Col, Descriptions, Avatar,} from "antd";
+import { Button, Form, Input, Typography, Card, Breadcrumb, Select, Row, Col, Descriptions, Avatar, message } from "antd";
 import { HomeOutlined, PhoneOutlined, UserOutlined, MailOutlined, PhoneOutlined as PhoneIcon } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import Footer from "../../components/Layout/Footer";
 import Header from "../../components/Layout/Header";
+import api from "../../api/axiosInstance";
 
 const { Title } = Typography;
 const { TextArea } = Input;
 
-const lecturersData = {
-    lecturer1: {
-        name: "Nguyễn Văn A",
-        email: "nguyenvana@example.com",
-        phone: "0909123456",
-        avatar: "https://i.pravatar.cc/150?img=1",
-    },
-    lecturer2: {
-        name: "Trần Thị B",
-        email: "tranthib@example.com",
-        phone: "0912233445",
-        avatar: "https://i.pravatar.cc/150?img=2",
-    },
-};
-
 export default function ContactPage() {
     const { t } = useTranslation();
+    const [form] = Form.useForm();
     const [contactType, setContactType] = useState("");
-    const [selectedLecturer, setSelectedLecturer] = useState(null);
+    const [subjects, setSubjects] = useState([]);
+    const [, setSelectedSubject] = useState(null);
+    const [selectedLecturerInfo, setSelectedLecturerInfo] = useState(null);
 
     useEffect(() => {
         document.title = "ATTEND 3D - " + t("contact");
+
+        fetchSubjects();
     }, [t]);
+
+    const fetchSubjects = async () => {
+        try {
+            const res = await api.get(`lecturers/lecturer-contact/`);
+            setSubjects(res.data || []);
+        } catch (error) {
+            console.error("Error fetching subjects:", error);
+            setSubjects([]);
+        }
+    };
 
     const handleContactTypeChange = (value) => {
         setContactType(value);
-        setSelectedLecturer(null);
+        setSelectedLecturerInfo(null);
     };
 
-    const handleLecturerChange = (value) => {
-        setSelectedLecturer(value);
-    };
+    const onFinish = async (values) => {
+        try {
+            const { object_contact, subject, content } = values;
+
+            if (!object_contact) {
+                return message.warning("Vui lòng chọn đối tượng liên hệ.");
+            }
+
+            const payload = {
+                type_person_contact: object_contact === "lecturer" ? "LECTURER" : "ADMIN",
+                message: content,
+                ...(object_contact === "lecturer" && subject ? { subject } : {}),
+            };
+
+            const res = await api.post("/contacts/add/", payload);
+
+            if (res.status === 201 || res.status === 200) {
+                message.success("Gửi liên hệ thành công.");
+                form.resetFields();
+                setContactType("");
+                setSelectedLecturerInfo(null);
+            } else {
+                message.error("Không thể gửi liên hệ. Vui lòng thử lại.");
+                console.error("Unexpected response:", res);
+            }
+        } catch (err) {
+            console.error("Error sending contact:", err);
+            if (err.response && err.response.data) {
+                const data = err.response.data;
+                if (typeof data === "string") {
+                    message.error(data);
+                } else if (data.detail) {
+                    message.error(data.detail);
+                } else {
+                    const firstKey = Object.keys(data)[0];
+                    const firstErr = data[firstKey];
+                    message.error(Array.isArray(firstErr) ? firstErr.join(", ") : String(firstErr));
+                }
+            } else {
+                message.error("Lỗi mạng hoặc máy chủ. Vui lòng thử lại.");
+            }
+        }
+    }
 
     return (
         <div className="min-h-screen flex flex-col bg-white text-gray-800 dark:bg-black dark:text-white">
@@ -49,7 +90,7 @@ export default function ContactPage() {
                     <div className="w-full px-4">
                         <Breadcrumb
                             items={[
-                                { href: "/", title: <><HomeOutlined /> <span>{"Trang chủ"}</span></> },
+                                { href: "/", title: <><HomeOutlined /> <span>{t("home")}</span></> },
                                 {
                                     href: "/contact",
                                     title: (
@@ -62,83 +103,32 @@ export default function ContactPage() {
                         />
                     </div>
 
-                    <div className="w-full p-5 rounded-lg mt-6">
+                    <div className="w-full p-5 rounded-lg mt-0">
                         <Card
                             title={
-                                <Title level={3} className="!mb-0 text-start">
-                                    {t("Send contact information")}
+                                <Title level={3} className="text-start">
+                                    {t("send contact information")}
                                 </Title>
                             }
                             className="p-6"
                         >
                             <Form
-                                name="contact"
+                                form={form}
+                                name="contact_form"
                                 layout="vertical"
                                 method="POST"
                                 autoComplete="off"
+                                onFinish={onFinish}
                             >
                                 <Row gutter={24}>
-                                    <Col xs={24} md={12}>
+                                    <Col xs={24} md={24}>
                                         <Form.Item
-                                            label={t("fullname")}
-                                            name="fullname"
-                                            rules={[
-                                                { required: true, message: t("Please enter your full name!") },
-                                            ]}
-                                        >
-                                            <Input
-                                                size="large"
-                                                style={{ boxShadow: 'none', borderWidth: 1.5 }}
-                                            />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col xs={24} md={12}>
-                                        <Form.Item
-                                            label={t("phonenumber")}
-                                            name="phone"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    message: t("Please enter your phone number!"),
-                                                },
-                                                {
-                                                    pattern: /^[0-9]{9,12}$/,
-                                                    message: t("Invalid phone number"),
-                                                },
-                                            ]}
-                                        >
-                                            <Input
-                                                size="large"
-                                                style={{ boxShadow: 'none', borderWidth: 1.5 }}
-                                            />
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-
-                                <Row gutter={24}>
-                                    <Col xs={24} md={12}>
-                                        <Form.Item
-                                            label="Email"
-                                            name="email"
-                                            rules={[
-                                                { required: true, message: t("Please enter your email!") },
-                                                { type: "email", message: t("Invalid email") },
-                                            ]}
-                                        >
-                                            <Input
-                                                size="large"
-                                                style={{ boxShadow: 'none', borderWidth: 1.5 }}
-                                            />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col xs={24} md={12}>
-                                        <Form.Item
-                                            label={t("Contact object")}
+                                            label={t("contact object")}
                                             name="object_contact"
                                             rules={[
                                                 {
                                                     required: true,
-                                                    message: t("Please select a contact person!"),
+                                                    message: t("please select a contact person"),
                                                 },
                                             ]}
                                         >
@@ -152,6 +142,7 @@ export default function ContactPage() {
                                                     { value: "admin", label: t("admin") },
                                                 ]}
                                                 className="w-full custom-select"
+                                                placeholder={t("select a contact person")}
                                             />
                                         </Form.Item>
                                     </Col>
@@ -163,82 +154,70 @@ export default function ContactPage() {
                                             <Form.Item
                                                 label={t("subject")}
                                                 name="subject"
-                                                rules={[{ required: true, message: "Vui lòng chọn môn học!" }]}
+                                                rules={[{ required: true, message: t("please select a subject") }]}
                                             >
                                                 <Select
                                                     showSearch
                                                     size="large"
                                                     allowClear
-                                                    placeholder={t("Enter your subject")}
-                                                    options={[
-                                                        { value: "math", label: "Toán" },
-                                                        { value: "physics", label: "Vật lý" },
-                                                        { value: "chemistry", label: "Hóa học" },
-                                                    ]}
+                                                    placeholder={t("enter your subject")}
+                                                    options={subjects.map((subject) => ({
+                                                        value: subject.subject_id,
+                                                        label: subject.subject_name,
+                                                    }))}
+                                                    onChange={(value) => {
+                                                        setSelectedSubject(value);
+                                                        const lecturer = subjects.find((s) => s.subject_id === value);
+                                                        setSelectedLecturerInfo(lecturer || null);
+
+                                                        form.setFieldsValue({
+                                                            lecturer: lecturer?.fullname || "",
+                                                        });
+                                                    }}
                                                     className="w-full custom-select"
                                                 />
                                             </Form.Item>
 
                                             <Form.Item
-                                                label={t("lecturerName")}
+                                                label={t("lecturer")}
                                                 name="lecturer"
-                                                rules={[
-                                                    { required: true, message: t("Please select a lecturer") },
-                                                ]}
                                             >
-                                                <Select
-                                                    showSearch
+                                                <Input
                                                     size="large"
-                                                    allowClear
-                                                    placeholder={t("Select lecturer")}
-                                                    options={Object.entries(lecturersData).map(
-                                                        ([key, val]) => ({
-                                                            value: key,
-                                                            label: val.name,
-                                                        })
-                                                    )}
-                                                    onChange={handleLecturerChange}
-                                                    className="w-full custom-select"
+                                                    disabled
                                                 />
                                             </Form.Item>
                                         </Col>
 
                                         <Col xs={24} md={12}>
-                                            <Card
-                                                size="small"
-                                                title={t("Lecturer Information")}
-                                                className="h-full"
-                                            >
-                                                {selectedLecturer ? (
+                                            <Card size="small" title={t("lecturer information")} className="h-full">
+                                                {selectedLecturerInfo ? (
                                                     <Descriptions column={1} size="small">
-                                                        <Descriptions.Item label={t("Name")}>
+                                                        <Descriptions.Item label={t("lecturer")}>
                                                             <div className="flex items-center gap-3">
                                                                 <Avatar
-                                                                    src={lecturersData[selectedLecturer].avatar}
+                                                                    src={
+                                                                        selectedLecturerInfo?.avatar ||
+                                                                        "https://cdn-icons-png.flaticon.com/512/219/219986.png"
+                                                                    }
                                                                     icon={<UserOutlined />}
                                                                 />
-                                                                {lecturersData[selectedLecturer].name}
+                                                                {selectedLecturerInfo?.fullname}
                                                             </div>
                                                         </Descriptions.Item>
-                                                        <Descriptions.Item label={t("Email")}>
-                                                            <a
-                                                                href={`mailto:${lecturersData[selectedLecturer].email}`}
-                                                            >
-                                                                <MailOutlined />{" "}
-                                                                {lecturersData[selectedLecturer].email}
+                                                        <Descriptions.Item label={t("email")}>
+                                                            <a href={`mailto:${selectedLecturerInfo?.email}`}>
+                                                                <MailOutlined /> {selectedLecturerInfo?.email}
                                                             </a>
                                                         </Descriptions.Item>
-                                                        <Descriptions.Item label={t("Phone")}>
-                                                            <a
-                                                                href={`tel:${lecturersData[selectedLecturer].phone}`}
-                                                            >
-                                                                <PhoneIcon />{" "}
-                                                                {lecturersData[selectedLecturer].phone}
+                                                        <Descriptions.Item label={t("phonenumber")}>
+                                                            <a href={`tel:${selectedLecturerInfo?.phone_number}`}>
+                                                                <PhoneIcon /> {selectedLecturerInfo?.phone_number}
                                                             </a>
                                                         </Descriptions.Item>
                                                     </Descriptions>
                                                 ) : (
-                                                    <p>{t("Please select a lecturer to view information")}</p>
+                                                    <p>{t("please select a lecturer to view information")}</p>
                                                 )}
                                             </Card>
                                         </Col>
@@ -248,9 +227,9 @@ export default function ContactPage() {
                                 <Form.Item
                                     label={t("content")}
                                     name="content"
-                                    rules={[{ required: true, message: t("Please enter your content!") }]}
+                                    rules={[{ required: true, message: t("please enter your content") }]}
                                 >
-                                    <TextArea rows={5} style={{ boxShadow: 'none', borderWidth: 1.5 }} />
+                                    <TextArea rows={5} style={{ boxShadow: 'none', borderWidth: 1.5 }} placeholder={t("enter your content")} />
                                 </Form.Item>
 
                                 <Form.Item className="mt-6">
@@ -261,7 +240,7 @@ export default function ContactPage() {
                                         size="large"
                                         style={{ width: '100px' }}
                                     >
-                                        {t("Send")}
+                                        {t("submit")}
                                     </Button>
                                 </Form.Item>
                             </Form>

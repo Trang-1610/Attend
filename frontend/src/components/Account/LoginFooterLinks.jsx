@@ -4,7 +4,7 @@ const LoginFooterLinks = ({ randomId }) => (
     <>
         <div className="text-right mb-4">
             <a
-                href={`/account/forgot-password/${randomId}`}
+                href={`/account/forgot-password/?redirect=${randomId}`}
                 className="text-blue-600 hover:underline text-sm"
             >
                 Quên mật khẩu?

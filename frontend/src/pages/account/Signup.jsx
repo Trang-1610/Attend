@@ -45,11 +45,14 @@ const Signup = () => {
             localStorage.setItem("otp_email", values.email);
 
             setLoading(false);
-            navigate(`/account/verify-otp/${randomId}`);
+            navigate(`/account/verify-otp/?redirect=${randomId}`);
         } catch (err) {
-            console.error(err);
             setLoading(false);
-            message.error("Lỗi gửi OTP.");
+            if (err.response && err.response.data && err.response.data.error) {
+                message.error(err.response.data.error);
+            } else {
+                message.error("Lỗi gửi OTP.");
+            }
         }
     };
 

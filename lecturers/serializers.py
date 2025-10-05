@@ -166,3 +166,13 @@ class LecturerScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lecturer
         fields = ["lecturer_id", "fullname"]
+# ==================================================
+# Get data lecturer, subject to contact function
+# ==================================================
+class LecturerContactSerializer(serializers.Serializer):
+    subject_id = serializers.IntegerField()
+    subject_name = serializers.CharField()
+    fullname = serializers.CharField()
+    email = serializers.EmailField()
+    phone_number = serializers.CharField()
+    avatar = serializers.ImageField()

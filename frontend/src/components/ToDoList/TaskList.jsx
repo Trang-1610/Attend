@@ -1,15 +1,17 @@
 import React from "react";
 import { Input, Button, List, Checkbox, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 
 const { Text } = Typography;
 
 export default function TaskList({ newTask, setNewTask, addTask, tasks, toggleTask, deleteTask }) {
+    const { t } = useTranslation();
     return (
         <>
             <div className="flex gap-2 mb-4 mt-4">
                 <Input
-                    placeholder="Thêm nhiệm vụ..."
+                    placeholder={t("add mission...")}
                     value={newTask}
                     onChange={(e) => setNewTask(e.target.value)}
                     onPressEnter={addTask}
@@ -22,7 +24,7 @@ export default function TaskList({ newTask, setNewTask, addTask, tasks, toggleTa
                     onClick={addTask}
                     size="large"
                 >
-                    Thêm
+                    {t("add")}
                 </Button>
             </div>
             <List

@@ -4,48 +4,186 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Nhắc nhở điểm danh - ATTEND 3D</title>
-    </head>
-    <body>
-        <table>
-            <tr>
-                <td align="center">
-                    <h1>ATTEND 3D</h1>
-                    <p>Thông báo nhắc nhở điểm danh</p>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <h2>Xin chào!</h2>
-                    <p>Bạn có lịch học sắp diễn ra vào lúc <strong>{{ start_time
-                            }}</strong></p>
 
-                    <p>Thông tin môn học:</p>
+        <!-- Font -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
+            rel="stylesheet" />
+
+        <style>
+      body {
+        background-color: #f6f8fb;
+        font-family: "Quicksand", sans-serif;
+        margin: 0;
+        padding: 0;
+        color: #333;
+      }
+
+      .container {
+        max-width: 600px;
+        background: #ffffff;
+        margin: 60px auto;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+      }
+
+      .header {
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: #fff;
+        text-align: center;
+        padding: 28px 20px;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      .header p {
+        margin: 6px 0 0;
+        font-size: 15px;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 36px 42px;
+      }
+
+      .content h2 {
+        font-size: 20px;
+        color: #1e40af;
+        margin-bottom: 16px;
+      }
+
+      .content p {
+        font-size: 15px;
+        line-height: 1.8;
+        margin: 12px 0;
+        color: #444;
+      }
+
+      .highlight-box {
+        background: #f9fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: 20px 0;
+      }
+
+      .highlight-box li {
+        font-size: 15px;
+        margin: 8px 0;
+      }
+
+      .btn-container {
+        text-align: center;
+        margin: 35px 0 20px;
+      }
+
+      .btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: #fff;
+        text-decoration: none;
+        padding: 12px 36px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 15px;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+      }
+
+      .footer {
+        background-color: #f9fafc;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+        padding: 24px;
+        font-size: 13px;
+        color: #777;
+      }
+
+      .footer p {
+        margin: 6px 0;
+      }
+
+      .footer a {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+
+      .footer strong {
+        color: #2563eb;
+      }
+    </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <h1>ATTEND 3D</h1>
+                <p>Thông báo nhắc nhở điểm danh</p>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <h2>Xin chào!</h2>
+
+                <p>
+                    Bạn có lịch học sắp diễn ra vào lúc
+                    <strong>{{ start_time }}</strong>.
+                </p>
+
+                <div class="highlight-box">
                     <ul>
-                        <li>Môn học: {{ subject_name }}</li>
-                        <li>Lớp: {{ class_name }}</li>
-                        <li>Tiết học: {{ period_number }}</li>
-                        <li>Thời gian bắt đầu: {{ start_time }}</li>
-                        <li>Còn lại: <strong>{{ minutes_left }}</strong> phút
-                            đến giờ điểm danh</li>
+                        <li><strong>Môn học:</strong> {{ subject_name }}</li>
+                        <li><strong>Lớp:</strong> {{ class_name }}</li>
+                        <li><strong>Tiết học:</strong> {{ period_number }}</li>
+                        <li><strong>Thời gian bắt đầu:</strong> {{ start_time
+                            }}</li>
+                        <li>
+                            <strong>Còn lại:</strong> {{ minutes_left }} phút
+                            đến giờ điểm danh
+                        </li>
                     </ul>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <p>Chúc bạn học tập hiệu quả!</p>
-                    <p><strong>ATTEND 3D</strong></p>
-                    <p>Website: <a
-                            href="https://attend3d.io">attend3d.io</a></p>
-                    <p>Phone number: 0825 025 347</p>
-                    <p>
-                        Email:
-                        <a
-                            href="mailto:zephyrnguyen.vn@gmail.com">zephyrnguyen.vn@gmail.com</a>
-                    </p>
-                    <hr />
-                    <p>&copy; 2025 ATTEND 3D. All rights reserved.</p>
-                </td>
-            </tr>
-        </table>
+                </div>
+
+                <p>Hãy chuẩn bị sẵn sàng để điểm danh đúng giờ nhé 👩‍🏫</p>
+
+                <div class="btn-container">
+                    <a href="https://attend3d.io/account/login" class="btn">
+                        Truy cập hệ thống
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p><strong>ATTEND 3D</strong></p>
+                <p>
+                    Website: <a href="https://attend3d.io">attend3d.io</a> |
+                    Phone: 0825&nbsp;025&nbsp;347
+                </p>
+                <p>
+                    Email:
+                    <a
+                        href="mailto:zephyrnguyen.vn@gmail.com">zephyrnguyen.vn@gmail.com</a>
+                </p>
+                <p>&copy; 2025 ATTEND 3D. All rights reserved.</p>
+            </div>
+        </div>
     </body>
 </html>

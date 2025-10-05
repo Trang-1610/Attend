@@ -1,17 +1,17 @@
 import React from "react";
 import { Form, Input, Select, Typography } from "antd";
-
+import { useTranslation } from "react-i18next";
 const { Title } = Typography;
 
 export default function SubjectInfoForm({ studentSubjects }) {
-
+    const { t } = useTranslation();
     return (
         <div className="p-4">
-            <Title level={4}>Thông tin môn học</Title>
+            <Title level={4}>{t("subject information")}</Title>
 
             <Form.Item
-                label="Tên môn học"
-                rules={[{ required: true, message: 'Vui lòng chọn môn học!' }]}
+                label={t("subject")}
+                rules={[{ required: true, message: t("please select a subject") }]}
                 name={'subject'}
                 initialValue={null}
             >
@@ -21,7 +21,7 @@ export default function SubjectInfoForm({ studentSubjects }) {
                         label: `${item.subject_name}`,
                         value: item.subject_id
                     }))}
-                    placeholder="Chọn môn học"
+                    placeholder={t("enter your subject")}
                     size="large"
                     className="w-full custom-select"
                     showSearch
@@ -32,7 +32,7 @@ export default function SubjectInfoForm({ studentSubjects }) {
             </Form.Item>
 
             <Form.Item
-                label="Tên giảng viên"
+                label={t("lecturer")}
                 rules={[{ required: false }]}
                 name={'teacher'}
             >
@@ -45,7 +45,7 @@ export default function SubjectInfoForm({ studentSubjects }) {
             </Form.Item>
 
             <Form.Item
-                label="Phòng học"
+                label={t("room")}
                 name="roomName"
                 rules={[{ required: false }]}
             >
@@ -58,7 +58,7 @@ export default function SubjectInfoForm({ studentSubjects }) {
             </Form.Item>
 
             <Form.Item
-                label="Tiết học"
+                label={t("slot")}
                 name="slotName"
                 rules={[{ required: false }]}
             >

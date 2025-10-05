@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, message, Typography, Spin } from "antd";
+import { Button, message, Typography, Spin, Alert } from "antd";
 import OtpInput from "../../components/Account/OtpInput";
 import Logo from "../../assets/general/face-recognition.png";
 import ImageOtp from "../../assets/general/otp.jpg";
@@ -111,6 +111,13 @@ const VerifyOtp = () => {
                 <div className="w-full max-w-md text-center">
                     <img src={Logo} alt="Logo" className="mx-auto mb-5 w-[100px]" />
                     <Title level={3} className="text-center">Xác minh OTP</Title>
+
+                    <Alert 
+                        showIcon
+                        message="Mã xác thực được gửi qua email. Vui lòng kiểm tra email" 
+                        type="success" 
+                        className="mb-6"
+                    />
 
                     <div className="text-center mb-6 mt-6">
                         <OtpInput length={6} onComplete={setOtpCode} />
