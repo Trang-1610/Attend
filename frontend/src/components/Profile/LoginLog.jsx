@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Table, Spin, message } from "antd";
+import { Typography, Table, Spin, message, Tooltip } from "antd";
 import api from "../../api/axiosInstance";
 
 const { Title } = Typography;
@@ -23,15 +23,22 @@ export default function GuideTab() {
             }
         };
         fetchLogs();
-    }, []);
+    }, [accountId]);
 
-    // Định nghĩa cột bảng
+    // Table columns
     const columns = [
         {
             title: "Code",
             dataIndex: "login_code",
             key: "login_code",
-            width: 70,
+            render: (code) =>
+                code ? (
+                    <Tooltip title={code}>
+                        <span>{code.substring(0, 6)}...</span>
+                    </Tooltip>
+                ) : (
+                    "-"
+            ),
         },
         {
             title: "Địa chỉ IP",
@@ -48,6 +55,19 @@ export default function GuideTab() {
             dataIndex: ["device_info", "browser"],
             key: "browser",
             render: (browser, record) => `${browser} ${record.device_info?.browser_version || ""}`,
+        },
+        {
+            title: "User agent",
+            dataIndex: "user_agent",
+            key: "user_agent",
+            render: (code) =>
+                code ? (
+                    <Tooltip title={code}>
+                        <span>{code.substring(0, 6)}...</span>
+                    </Tooltip>
+                ) : (
+                    "-"
+            ),
         },
         {
             title: "Thiết bị",
@@ -102,7 +122,7 @@ export default function GuideTab() {
                     columns={columns}
                     rowKey="login_code"
                     pagination={{ pageSize: 10 }}
-                    scroll={{ x: true}}
+                    scroll={{ x: true }}
                 />
             )}
         </div>

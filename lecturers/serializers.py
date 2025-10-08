@@ -176,3 +176,8 @@ class LecturerContactSerializer(serializers.Serializer):
     email = serializers.EmailField()
     phone_number = serializers.CharField()
     avatar = serializers.ImageField()
+# ==================================================
+# AMIN: Caculation the total of lecturer
+# ==================================================
+class TotalLecturerSerializer(serializers.Serializer):
+    total_lecturer = serializers.IntegerField()

@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from .serializers import (
     LecturerListSerializer, AllLecturerSerializer, LecturerAssignmentSerializer, 
-    LecturerWithSubjectsSerializer, LecturerContactSerializer
+    LecturerWithSubjectsSerializer, LecturerContactSerializer, TotalLecturerSerializer
 )
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from .models import Lecturer, LecturerSubject
 from lecturers.utils.email.assignment_class_subject_email import send_assignment_email
 from classes.models import Class
@@ -16,6 +16,7 @@ from audit.models import AuditLog
 from notifications.models import Notification
 from lecturers.utils.request import get_client_ip
 from django.db import connection
+from rest_framework.decorators import api_view, permission_classes
 
 # ==================================================
 # LECTURER LIST VIEW
@@ -116,4 +117,13 @@ class LecturerContactAPIView(APIView):
             rows = [dict(zip(columns, row)) for row in results]
 
         serializer = LecturerContactSerializer(rows, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+# ==================================================
+# AMIN: Caculation the total of lecturer
+# ==================================================
+class TotalLecturerView(APIView):
+    permission_classes = [IsAdminUser]
+    def get(self, request):
+        total = Lecturer.objects.count()
+        serializer = TotalLecturerSerializer({'total_lecturer': total})
         return Response(serializer.data, status=status.HTTP_200_OK)

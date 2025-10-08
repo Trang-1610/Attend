@@ -104,7 +104,7 @@ const Sidebar = ({ collapsed, setCollapsed, t }) => {
           {
             key: '3',
             icon: <CalendarOutlined />,
-            label: <a href='/admin/schedule'>Lịch học</a>,
+            label: <a href='/admin/schedule'>Quản lý lịch học</a>,
           },
           {
             key: 'account-management',

@@ -12,7 +12,12 @@ export const AuthProvider = ({ children }) => {
             const res = await api.get("accounts/me/");
             setUser(res.data);
         } catch (err) {
-            setUser(null);
+            const stored = localStorage.getItem("user");
+            if (stored) {
+                setUser(JSON.parse(stored));
+            } else {
+                setUser(null);
+            }
         } finally {
             setInitializing(false);
         }
@@ -31,16 +36,16 @@ export const AuthProvider = ({ children }) => {
             return;
         }
 
-        // const storedUser = localStorage.getItem("user");
-        // if (storedUser) {
-        //     try {
-        //         setUser(JSON.parse(storedUser));
-        //         setInitializing(false);
-        //         return;
-        //     } catch (e) {
-        //         console.error("Error parsing user:", e);
-        //     }
-        // }
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+                setInitializing(false);
+                return;
+            } catch (e) {
+                console.error("Error parsing user:", e);
+            }
+        }
 
         fetchMe();
     }, []);
@@ -57,10 +62,14 @@ export const AuthProvider = ({ children }) => {
     const login = async (payload) => {
         try {
             const res = await api.post("accounts/login/", payload, { withCredentials: true });
+            const userData = res.data.user || res.data;
+
+            setUser(userData);
+            localStorage.setItem("user", JSON.stringify(userData));
+
             await fetchMe();
-            const { user } = res.data;
-            localStorage.setItem("user", JSON.stringify(user));
-            return user;
+
+            return userData;
         } catch (error) {
             throw error;
         }

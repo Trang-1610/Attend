@@ -127,7 +127,7 @@ def get_device_and_location(request):
 
     location = None
     try:
-        res = requests.get(f"https://ipinfo.io/{ip_address}?token=", timeout=3)
+        res = requests.get(f"https://ipinfo.io/{ip_address}?token=d065275d7a2b3f", timeout=3)
         if res.status_code == 200:
             data = res.json()
             location = f"{data.get('city', '')}, {data.get('region', '')}, {data.get('country', '')}"

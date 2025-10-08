@@ -5,7 +5,7 @@ from .serializers import (
     StudentSerializer, DepartmentSerializer, MajorSerializer, 
     AllStudentGetListSerializer, StudentCreateSerializer, StudentUpdateSerializer, 
     SubjectRegistrationRequestSerializer, StudentScheduleSerializer, StudentSubjectBySemesterSerializer,
-    StudentSemesterAcademicYearSerializer
+    StudentSemesterAcademicYearSerializer, AdminScheduleManagementSerializer, StudentCodeSerializer, TotalStudentSerializer
 )
 from .models import Department, Major
 from rest_framework import generics
@@ -25,7 +25,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from subjects.models import Subject
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 
 # ==================================================
 # Get client ip
@@ -457,3 +457,84 @@ def get_student_semester(request, account_id):
 
     serializer = StudentSemesterAcademicYearSerializer(data, many=True)
     return Response(serializer.data)
+# ==================================================
+# ADMIN: Get schedule of student by student_code
+# ==================================================
+class AdminScheduleManagementView(APIView):
+    """
+    API to get schedule of student by student_code
+    """
+    permission_classes = [IsAdminUser]
+    def get(self, request, student_code):
+        query = """
+        SELECT DISTINCT ON (sch.schedule_id)
+            srr.subject_registration_request_id,
+            srr.status AS register_status,
+            srr.created_at,
+            st.student_code,
+            st.fullname AS student_name,
+            sub.subject_name,
+            cl.class_name,
+            se.start_date AS semester_start_date,
+            se.end_date AS semester_end_date,
+            l.lecturer_id,
+            l.fullname AS lecturer_name,
+            sch.schedule_id,
+            sch.day_of_week,
+            sch.lesson_type,
+            ls.slot_name,
+            r.room_name,
+            r.capacity,
+            sh.shift_name,
+            sch.start_time::time AS lesson_start,
+            sch.end_time::time AS lesson_end
+        FROM schedules AS sch
+        JOIN subjects AS sub ON sub.subject_id = sch.subject_id_id
+        JOIN classes AS cl ON cl.class_id = sch.class_id_id
+        JOIN subject_registration_requests AS srr ON srr.schedule_id = sch.schedule_id
+        JOIN lesson_slots AS ls ON ls.slot_id = sch.slot_id
+        JOIN shifts AS sh ON sh.shift_id = ls.shift_id_id
+        JOIN rooms AS r ON r.room_id = sch.room_id
+        JOIN students AS st ON st.student_id = srr.student_id
+        JOIN semesters AS se ON se.semester_id = srr.semester_id
+        JOIN lecturer_subjects AS lsub ON lsub.subject_id = srr.subject_id
+        JOIN lecturers AS l ON l.lecturer_id = lsub.lecturer_id
+        JOIN student_subjects AS ss ON ss.subject_registration_request_id = srr.subject_registration_request_id
+        WHERE st.student_code = %s
+        AND sch.status = '1'
+        AND sh.status = '1'
+        AND sub.status = '1'
+        AND cl.status = '1'
+        AND r.status = '1'
+        AND se.status = '1'
+        ORDER BY sch.schedule_id;
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, [student_code])
+            columns = [col[0] for col in cursor.description]
+            result = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        serializer = AdminScheduleManagementSerializer(result, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+# ==================================================
+# ADMIN: Get all student_code of student
+# ==================================================
+class GetAllStudentCodeView(APIView):
+    """
+    API to get all student_code of student
+    """
+    permission_classes = [IsAdminUser]
+    def get(self, request):
+        students = Student.objects.all()
+        serializer = StudentCodeSerializer(students, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+# ==================================================
+# ADMIN: Caculation total of student
+# ==================================================
+class TotalStudentView(APIView):
+    permission_classes = [IsAdminUser]
+    def get(self, request):
+        total = Student.objects.count()
+        serializer = TotalStudentSerializer({'total_student': total})
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -2,15 +2,24 @@ from django.db import connection
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
+from .models import Attendance
+from students.models import Department
 from .serializers import (
-    AttendanceSummarySerializer, AttendanceHistorySerializer, AttendanceStatisticSerializer
+    AttendanceSummarySerializer, AttendanceHistorySerializer, AttendanceStatisticSerializer,
+    AttendanceStatisticTotalSerializer, AttendanceByDepartmentSerializer
 )
+from django.db.models import Count, Q, F
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 
 # ==================================================
 # Display list attendance summary by account_id
 # ==================================================
 class AttendanceSummaryView(APIView):
+    """
+    Display list attendance summary by account_id
+    URL: /attendance-summary/<int:account_id>/
+    """
     def get(self, request, account_id):
         query = """
             SELECT
@@ -46,6 +55,10 @@ class AttendanceSummaryView(APIView):
 # Attendance history view
 # ==================================================
 class AttendanceHistoryView(APIView):
+    """
+    Display list attendance history by account_id
+    URL: /attendance-history/<int:account_id>/
+    """
     def get(self, request, account_id):
         query = """
         SELECT
@@ -114,6 +127,10 @@ class AttendanceHistoryView(APIView):
 # Attendance statistics view
 # ==================================================
 class AttendanceStatisticView(APIView):
+    """
+    Get attendance statistics for a given account_id
+    URL: /attendance-statistics/<int:account_id>/
+    """
     def get(self, request, account_id):
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -157,3 +174,106 @@ class AttendanceStatisticView(APIView):
 
         serializer = AttendanceStatisticSerializer(data, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+# ==================================================
+# AMIN: Caculation the total of attendance
+# ==================================================
+class AttendanceStatisticTotalView(APIView):
+    permission_classes = [IsAdminUser]
+    """
+    Calculate the total number of attendance sessions, present sessions, late sessions, and absent sessions.
+    URL: /admin/attendance-statistics-total/
+    """
+    def get(self, request):
+        stats = Attendance.objects.aggregate(
+            total_sessions=Count('attendance_id'),
+            present_sessions=Count('attendance_id', filter=Q(status=Attendance.Status.PRESENT)),
+            late_sessions=Count('attendance_id', filter=Q(status=Attendance.Status.LATE)),
+            absent_sessions=Count('attendance_id', filter=Q(status=Attendance.Status.ABSENT)),
+        )
+
+        total = stats["total_sessions"] or 0
+        if total > 0:
+            stats["present_rate"] = round(stats["present_sessions"] / total * 100, 2)
+            stats["late_rate"] = round(stats["late_sessions"] / total * 100, 2)
+            stats["absent_rate"] = round(stats["absent_sessions"] / total * 100, 2)
+            stats["total_sessions_precent"] = round(stats["present_rate"] + stats["late_rate"] / 100, 2)
+        else:
+            stats["present_rate"] = stats["late_rate"] = stats["absent_rate"] = 0.0
+
+        serializer = AttendanceStatisticTotalSerializer(stats)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+# ==================================================
+# AMIN: Calulation the total of attendance session by each department
+# ==================================================
+class AttendanceStatisticByDepartmentView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, semester_id, academic_year_id):
+        """
+        Get attendance statistics grouped by department for a given semester and academic year.
+        URL: /admin/attendance-statistics-by-department/<semester_id>/<academic_year_id>/
+        """
+
+        try:
+            # FILTER:
+            # Attendance.student -> Account
+            # Account.student (OneToOne reverse) -> Student
+            # Student.department -> Department
+            # Schedule -> Class -> SubjectClass -> Semester -> AcademicYear
+            departments = Department.objects.all().values("department_id", "department_name")
+
+            # Query Attendance data filtered by semester + academic year
+            queryset = Attendance.objects.select_related(
+                "student", "student__student", "student__student__department",
+                "schedule__class_id"
+            ).filter(
+                schedule__class_id__subject_classes__semester_id=semester_id,
+                schedule__class_id__subject_classes__semester__academic_year_id=academic_year_id,
+                student__student__isnull=False,  # avoid accounts without Student
+            )
+
+            # Aggregate attendance counts per department
+            stats = (
+                queryset
+                .values(
+                    department_id=F("student__student__department__department_id"),
+                )
+                .annotate(
+                    total_sessions=Count("attendance_id"),
+                    present_sessions=Count("attendance_id", filter=Q(status=Attendance.Status.PRESENT)),
+                    late_sessions=Count("attendance_id", filter=Q(status=Attendance.Status.LATE)),
+                    absent_sessions=Count("attendance_id", filter=Q(status=Attendance.Status.ABSENT)),
+                )
+            )
+
+            # Convert queryset to dict for fast lookup
+            stats_map = {item["department_id"]: item for item in stats}
+
+            # Merge: ensure every department appears in final result
+            result = []
+            for dept in departments:
+                d_id = dept["department_id"]
+                stat = stats_map.get(d_id, None)
+                total = stat["total_sessions"] if stat else 0
+                present = stat["present_sessions"] if stat else 0
+                late = stat["late_sessions"] if stat else 0
+                absent = stat["absent_sessions"] if stat else 0
+
+                result.append({
+                    "department_id": d_id,
+                    "department_name": dept["department_name"],
+                    "total_sessions": total,
+                    "present_sessions": present,
+                    "late_sessions": late,
+                    "absent_sessions": absent,
+                    "present_rate": round(present / total * 100, 2) if total else 0.0,
+                    "late_rate": round(late / total * 100, 2) if total else 0.0,
+                    "absent_rate": round(absent / total * 100, 2) if total else 0.0,
+                })
+
+            # Serialize and return
+            serializer = AttendanceByDepartmentSerializer(result, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

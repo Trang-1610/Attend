@@ -4,7 +4,7 @@ from .views import (
     StudentListView, AllStudentGetListView, create_student, 
     MajorUpdateAPIView, StudentUpdateAPIView, SubjectRegistrationRequestCreateView, 
     SubjectRegistrationRequestListView, StudentScheduleView, StudentSubjectBySemesterView,
-    get_student_semester
+    get_student_semester, GetAllStudentCodeView, AdminScheduleManagementView, TotalStudentView
 )
 
 urlpatterns = [
@@ -23,6 +23,24 @@ urlpatterns = [
         'students/subjects/by-semester/<int:account_id>/<int:semester_id>/',
         StudentSubjectBySemesterView.as_view(),
         name='student-subjects'
+    ),
+    # Get all student code
+    path(
+        'students/admin/all/student-codes/',
+        GetAllStudentCodeView.as_view(),
+        name='get-all-student-code'
+    ),
+    # Get schedule of student
+    path(
+        'students/admin/all/schedule/<str:student_code>/',
+        AdminScheduleManagementView.as_view(),
+        name='get-student-schedule'
+    ),
+    # Get total student
+    path(
+        'students/admin/total-student/',
+        TotalStudentView.as_view(),
+        name='get-total-student'
     ),
     path(
         'students/semester/academic-year/<int:account_id>/',

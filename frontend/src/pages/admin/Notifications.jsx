@@ -17,6 +17,10 @@ const { Header } = Layout;
 const { RangePicker } = DatePicker;
 
 export default function NotificationManagement() {
+    useEffect(() => {
+        document.title = "ATTEND 3D - Thông báo";
+    });
+    
     const { t } = useTranslation();
     const [collapsed, setCollapsed] = useState(false);
     const [searchText, setSearchText] = useState('');

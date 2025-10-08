@@ -38,3 +38,30 @@ class AttendanceStatisticSerializer(serializers.Serializer):
     present_sessions = serializers.IntegerField()
     late_sessions = serializers.IntegerField()
     absent_sessions = serializers.IntegerField()
+# ==================================================
+# AMIN: Calulation the total of attendance session
+# ==================================================
+class AttendanceStatisticTotalSerializer(serializers.Serializer):
+    total_sessions = serializers.IntegerField()
+    total_sessions_precent = serializers.DecimalField(max_digits=5, decimal_places=2)
+
+    # present_sessions = serializers.IntegerField()
+    # late_sessions = serializers.IntegerField()
+    # absent_sessions = serializers.IntegerField()
+
+    # present_rate = serializers.FloatField()
+    # late_rate = serializers.FloatField()
+    # absent_rate = serializers.FloatField()
+# ==================================================
+# AMIN: Calulation the total of attendance session by each department
+# ==================================================
+class AttendanceByDepartmentSerializer(serializers.Serializer):
+    department_id = serializers.IntegerField()
+    department_name = serializers.CharField()
+    present_sessions = serializers.IntegerField()
+    late_sessions = serializers.IntegerField()
+    absent_sessions = serializers.IntegerField()
+    total_sessions = serializers.IntegerField()
+    present_rate = serializers.FloatField()
+    late_rate = serializers.FloatField()
+    absent_rate = serializers.FloatField()

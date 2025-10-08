@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Button, Avatar, Dropdown, message, Popover, Badge, Drawer, Menu, Modal } from "antd";
-import { PhoneOutlined, ScanOutlined, SettingOutlined, MenuOutlined, UserOutlined, LoginOutlined, BarChartOutlined, PlusCircleOutlined, WechatWorkOutlined, AuditOutlined, LogoutOutlined, UserSwitchOutlined, BellOutlined, } from "@ant-design/icons";
+import { PhoneOutlined, ScanOutlined, SettingOutlined, MenuOutlined, UserOutlined, BarChartOutlined, PlusCircleOutlined, WechatWorkOutlined, AuditOutlined, LogoutOutlined, UserSwitchOutlined, BellOutlined, } from "@ant-design/icons";
 
 import Logo from "../../assets/general/face-recognition.png";
 import i18n from "i18next";
@@ -19,6 +19,8 @@ export default function Header() {
     const [user, setUser] = useState(null);
     const [notifications, setNotifications] = useState([]);
     const location = useLocation();
+
+    const userRole = user?.role;
 
     const fetchNotifications = useCallback(async (accountId, checkNew = false) => {
         try {
@@ -145,15 +147,8 @@ export default function Header() {
             key: "user",
             icon: Icons.Setting,
             label: t("setting"),
-            children: !user
+            children: userRole === "admin"
                 ? [
-                    {
-                        key: "login-prompt",
-                        label: <a href="/account/login">Đăng nhập để thực hiện các chức năng</a>,
-                        icon: <LoginOutlined />,
-                    },
-                ]
-                : [
                     {
                         key: "admin",
                         label: (
@@ -163,6 +158,51 @@ export default function Header() {
                         ),
                         icon: <UserSwitchOutlined />,
                     },
+                    {
+                        key: "add-face",
+                        label: <a href="/attendance/add-face">{t("add_face")}</a>,
+                        icon: <ScanOutlined />,
+                    },
+                    {
+                        key: "event",
+                        label: t("create_event"),
+                        icon: <PlusCircleOutlined />,
+                        children: [
+                            {
+                                key: "add-reminder",
+                                label: <a href="/add-event/add-reminder">{t("create_reminder")}</a>,
+                                icon: <WechatWorkOutlined />,
+                            },
+                            {
+                                key: "request-leave",
+                                label: <a href="/add-event/request-leave">{t("request_leave")}</a>,
+                                icon: <AuditOutlined />,
+                            },
+                        ],
+                    },
+                    {
+                        key: "general-setting",
+                        label: <a href="/general-setting">{t("general_setting")}</a>,
+                        icon: <SettingOutlined />,
+                    },
+                    {
+                        key: "statistic",
+                        label: <a href="/attendance/statistics">{t("attendance_stat")}</a>,
+                        icon: <BarChartOutlined />,
+                    },
+                    {
+                        key: "contact",
+                        label: <a href="/contact">{t("contact")}</a>,
+                        icon: <PhoneOutlined />,
+                    },
+                    {
+                        key: "logout",
+                        onClick: handleLogout,
+                        label: <span style={{ color: "red" }}>{t("logout")}</span>,
+                        icon: <LogoutOutlined style={{ color: "red" }} />,
+                    },
+                ]
+                : [
                     {
                         key: "add-face",
                         label: <a href="/attendance/add-face">{t("add_face")}</a>,

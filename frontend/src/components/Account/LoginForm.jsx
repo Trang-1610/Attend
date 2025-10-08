@@ -33,10 +33,14 @@ const LoginForm = ({ messageApi, executeRecaptcha, navigate, randomId, loading, 
             if (redirect) {
                 navigate(redirect);
             } else {
-                if (loggedInUser?.role === "admin") {
+                if (loggedInUser?.role === "admin" || loggedInUser?.role === "superadmin") {
                     navigate("/admin/dashboard");
-                } else {
+                } else if (loggedInUser?.role === "lecturer") {
+                    navigate("/lecturer/dashboard");
+                } else if (loggedInUser?.role === "student") {
                     navigate("/");
+                } else {
+                    navigate("/forbidden/pages/403");
                 }
             }
         } catch (error) {

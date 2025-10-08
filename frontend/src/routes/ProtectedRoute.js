@@ -7,7 +7,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, initializing } = useAuth();
   const location = useLocation();
 
-  if (initializing) {
+  if (initializing || (allowedRoles && !user)) {
     return <Spin size="large" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }} />;
   }
 
@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     );
   }
 
-  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+  if (allowedRoles && user?.role && !allowedRoles.includes(user.role)) {
     return <Navigate to="/forbidden/pages/403" replace />;
   }
 

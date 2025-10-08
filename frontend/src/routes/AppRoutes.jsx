@@ -54,6 +54,7 @@ import AStudentCreated from "../pages/admin/students/StudentCreate";
 import ClassAssignment from "../pages/admin/students/ClassAssignment";
 import SubjectAssignment from "../pages/admin/lecturers/SubjectAssignment";
 import LecturerList from "../pages/admin/lecturers/LecturerList";
+import AdminSchedule from "../pages/admin/Schedule";
 
 import Error403 from "../components/403";
 
@@ -63,7 +64,7 @@ const AppRoutes = () => {
             <Route path="/account/login/*" element={<Login />} />
             <Route path="/account/signup/*" element={<Signup />} />
             <Route path="/account/verify-otp/*" element={<VerifyOtp />} />
-            <Route path="/" element={ <ProtectedRoute allowedRoles={["student"]}> <Home /> </ProtectedRoute> } />
+            <Route path="/" element={ <ProtectedRoute allowedRoles={["student", "admin", "superadmin"]}> <Home /> </ProtectedRoute> } />
             <Route path="/contact" element={<ProtectedRoute allowedRoles={["student"]}><Contact /></ProtectedRoute>} />
             <Route path="/notifications/all" element={<ProtectedRoute allowedRoles={["student"]}><Notification /></ProtectedRoute>} />
             <Route path="/introduction" element={<ProtectedRoute allowedRoles={["student"]}><Introduction /></ProtectedRoute>} />
@@ -79,7 +80,7 @@ const AppRoutes = () => {
             <Route path="/attendance/attendance-history" element={<ProtectedRoute allowedRoles={["student"]}><AttendanceHistory /></ProtectedRoute>} />
             <Route path="/timetable" element={<ProtectedRoute allowedRoles={["student"]}><TimeTable /></ProtectedRoute>} />
             <Route path="/profile/*" element={<ProtectedRoute allowedRoles={["student"]}><Profile /></ProtectedRoute>} />
-            <Route path="/attendance/attendance-qr" element={<ProtectedRoute allowedRoles={["student"]}e><AttendanceQRCode /></ProtectedRoute>} />
+            <Route path="/attendance/attendance-qr" element={<ProtectedRoute allowedRoles={["student"]}><AttendanceQRCode /></ProtectedRoute>} />
             <Route path="/attendance/add-face" element={<ProtectedRoute allowedRoles={["student"]}><AttendanceFace /></ProtectedRoute>} />
             <Route path="/account/forgot-password/*" element={<ForgotPassword />} />
             <Route path="/account/otp-verify-reset-password/*" element={<OtpVerifyResetPassword />} />
@@ -91,33 +92,34 @@ const AppRoutes = () => {
             {/* Admin */}
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
 
-            <Route path="/admin/management/students" element={<ProtectedRoute><StudentManagement /></ProtectedRoute>} />
-            <Route path="/admin/management/students/create" element={<ProtectedRoute><StudentCreate /></ProtectedRoute>} />
-            <Route path="/admin/management/lecturers" element={<ProtectedRoute><LecturerManagement /></ProtectedRoute>} />
-            <Route path="/admin/management/lecturers/create" element={<ProtectedRoute><LecturerCreate /></ProtectedRoute>} />
+            <Route path="/admin/management/students" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><StudentManagement /></ProtectedRoute>} />
+            <Route path="/admin/management/students/create" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><StudentCreate /></ProtectedRoute>} />
+            <Route path="/admin/management/lecturers" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><LecturerManagement /></ProtectedRoute>} />
+            <Route path="/admin/management/lecturers/create" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><LecturerCreate /></ProtectedRoute>} />
 
-            <Route path="/admin/management/role" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
-            <Route path="/admin/management/role/create" element={<ProtectedRoute><RoleCreate /></ProtectedRoute>} />
-            <Route path="/admin/management/permission" element={<ProtectedRoute><PermissionAssignment /></ProtectedRoute>} />
-            <Route path="/admin/management/account" element={<ProtectedRoute><AccountManagement /></ProtectedRoute>} />
+            <Route path="/admin/management/role" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><RoleManagement /></ProtectedRoute>} />
+            <Route path="/admin/management/role/create" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><RoleCreate /></ProtectedRoute>} />
+            <Route path="/admin/management/permission" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><PermissionAssignment /></ProtectedRoute>} />
+            <Route path="/admin/management/account" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><AccountManagement /></ProtectedRoute>} />
 
-            <Route path="/admin/academics/rooms" element={<ProtectedRoute><RoomManagement /></ProtectedRoute>} />
-            <Route path="/admin/academics/subjects" element={<ProtectedRoute><SubjectManagement /></ProtectedRoute>} />
-            <Route path="/admin/academics/academic-years" element={<ProtectedRoute><AcademicYearManagement /></ProtectedRoute>} />
-            <Route path="/admin/academics/departments" element={<ProtectedRoute><DepartmentManagement /></ProtectedRoute>} />
-            <Route path="/admin/academics/majors" element={<ProtectedRoute><MajorManagement /></ProtectedRoute>} />
-            <Route path="/admin/academics/classes" element={<ProtectedRoute><ClassManagement /></ProtectedRoute>} />
-            <Route path="/admin/academics/classes/create" element={<ProtectedRoute><ClassCreate /></ProtectedRoute>} />
-            <Route path="/admin/academics/subjects/create" element={<ProtectedRoute><SubjectCreate /></ProtectedRoute>} />
+            <Route path="/admin/academics/rooms" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><RoomManagement /></ProtectedRoute>} />
+            <Route path="/admin/academics/subjects" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><SubjectManagement /></ProtectedRoute>} />
+            <Route path="/admin/academics/academic-years" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><AcademicYearManagement /></ProtectedRoute>} />
+            <Route path="/admin/academics/departments" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><DepartmentManagement /></ProtectedRoute>} />
+            <Route path="/admin/academics/majors" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><MajorManagement /></ProtectedRoute>} />
+            <Route path="/admin/academics/classes" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><ClassManagement /></ProtectedRoute>} />
+            <Route path="/admin/academics/classes/create" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><ClassCreate /></ProtectedRoute>} />
+            <Route path="/admin/academics/subjects/create" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><SubjectCreate /></ProtectedRoute>} />
 
-            <Route path="/admin/notifications" element={<ProtectedRoute><NotificationManagement /></ProtectedRoute>} />
+            <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><NotificationManagement /></ProtectedRoute>} />
 
-            <Route path="/admin/students/list" element={<ProtectedRoute><StudentList /></ProtectedRoute>} />
-            <Route path="/admin/students/list/create" element={<ProtectedRoute><AStudentCreated /></ProtectedRoute>} />
-            <Route path="/admin/students/assign-class" element={<ProtectedRoute><ClassAssignment /></ProtectedRoute>} />
+            <Route path="/admin/students/list" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><StudentList /></ProtectedRoute>} />
+            <Route path="/admin/students/list/create" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><AStudentCreated /></ProtectedRoute>} />
+            <Route path="/admin/students/assign-class" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><ClassAssignment /></ProtectedRoute>} />
 
-            <Route path="/admin/lecturers/assign-class" element={<ProtectedRoute><SubjectAssignment /></ProtectedRoute>} />
-            <Route path="/admin/lecturers/list" element={<ProtectedRoute><LecturerList /></ProtectedRoute>} />
+            <Route path="/admin/lecturers/assign-class" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><SubjectAssignment /></ProtectedRoute>} />
+            <Route path="/admin/lecturers/list" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><LecturerList /></ProtectedRoute>} />
+            <Route path="/admin/schedule" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><AdminSchedule /></ProtectedRoute>} />
             
         </Routes>
     );

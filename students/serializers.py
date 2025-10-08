@@ -265,3 +265,41 @@ class StudentSemesterAcademicYearSerializer(serializers.Serializer):
     semester_name = serializers.CharField()
     academic_year_id = serializers.IntegerField()
     academic_year_name = serializers.CharField()
+# ==================================================
+# ADMIN: Get data admin schedule for student
+# ==================================================
+class AdminScheduleManagementSerializer(serializers.Serializer):
+    subject_registration_request_id = serializers.IntegerField()
+    register_status = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    student_code = serializers.CharField()
+    student_name = serializers.CharField()
+    subject_name = serializers.CharField()
+    class_name = serializers.CharField()
+    semester_start_date = serializers.DateField()
+    semester_end_date = serializers.DateField()
+    lecturer_id = serializers.IntegerField()
+    lecturer_name = serializers.CharField(allow_null=True)
+    schedule_id = serializers.IntegerField()
+    day_of_week = serializers.IntegerField()
+    lesson_type = serializers.CharField()
+    slot_name = serializers.CharField()
+    room_name = serializers.CharField()
+    capacity = serializers.IntegerField()
+    shift_name = serializers.CharField()
+    lesson_start = serializers.TimeField()
+    lesson_end = serializers.TimeField()
+# ==================================================
+# ADMIN: Get all student_code of student
+# ==================================================
+class StudentCodeSerializer(serializers.Serializer):
+    student_code = serializers.CharField()
+    fullname = serializers.CharField()
+    dob = serializers.DateField()
+    class Meta:
+        fields = ['student_code', 'fullname', 'dob']
+# ==================================================
+# ADMIN: Caculation total of student
+# ==================================================
+class TotalStudentSerializer(serializers.Serializer):
+    total_student = serializers.IntegerField()
