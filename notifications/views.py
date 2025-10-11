@@ -11,6 +11,9 @@ from students.models import Student
 import datetime
 from django.utils.timezone import now
 from .tasks import send_reminder_email
+from rest_framework import serializers
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 # ==================================================
 # Display list notifications by account_id
@@ -71,6 +74,20 @@ def mark_notifications_as_read(request, account_id):
         pk__in=ids,
         to_target_id=account_id
     ).update(is_read='1')
+
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"user_{account_id}",
+        {
+            "type": "send_read_update",
+            "content": {
+                "ids": ids,
+                "unread_count": Notification.objects.filter(
+                    to_target_id=account_id, is_read='0'
+                ).count()
+            }
+        }
+    )
 
     return Response({"status": "success"})
 

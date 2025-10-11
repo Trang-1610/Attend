@@ -3,43 +3,32 @@ from rest_framework.response import Response
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
-from .models import Account 
-from accounts.models import Role 
 from .serializers import (
     AccountSerializer, AccountResetPassword, AccountResetPasswordLecturer, 
     AccountListSerializer, RequestOTPChangePasswordSerializer, VerifyOTPChangePasswordSerializer,
-    RequestEmailChangePasswordSerializer, ResendOtpSerializer, ResetPasswordForChangePassword
+    RequestEmailChangePasswordSerializer, ResendOtpSerializer, ResetPasswordForChangePassword,
+    AdminUpdateAccountSerializer, AccountCreateSerializer
 )
 from django.middleware.csrf import get_token
-import traceback
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from django.core.cache import cache
 from .otp_storage import otp_storage
-import random, string
-from rest_framework_simplejwt.tokens import RefreshToken
+import random, string, traceback, base64, uuid, os, string
 from rest_framework.views import APIView
-from rest_framework import status, permissions
-from .models import Account
-import base64
-import uuid
+from rest_framework import status, permissions, serializers
+from .models import Account, UserSession, Role
 from django.core.files.base import ContentFile
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import serializers
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from .serializers import LoginSerializer
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.views.decorators.csrf import csrf_exempt
-import os
 from django.conf import settings
-import string
-from datetime import datetime
-from students.models import Student
-from rest_framework.permissions import AllowAny
+from datetime import datetime, timedelta
 from accounts.utils.recaptcha import verify_recaptcha
-from rest_framework.permissions import IsAdminUser
 from django.db.models import Q
-from students.models import Department, Major
+from students.models import Department, Major, Student
 from notifications.models import Notification
 from audit.models import AuditLog
 from lecturers.models import Lecturer
@@ -52,9 +41,13 @@ from helper.get_client_ip import get_client_ip
 from rest_framework.authentication import BasicAuthentication
 from django.contrib.auth.models import Group
 from django.utils import timezone
-from datetime import timedelta
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.auth import logout
+from django.shortcuts import get_object_or_404
+from audit.models import LoginLog
+
+# Limit the number of active sessions
+MAX_ACTIVE_SESSIONS = 2
 
 # ==================================================
 # GET CSRF
@@ -268,6 +261,29 @@ class LoginView(APIView):
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
 
+            ip = get_client_ip(request)
+            user_agent = request.META.get("HTTP_USER_AGENT", "unknown")
+
+            # --- Limited number of active sessions ---
+            active_sessions = UserSession.objects.filter(account=user, is_active=True)
+            if active_sessions.count() >= MAX_ACTIVE_SESSIONS:
+                # Remove the oldest session
+                oldest = active_sessions.order_by("created_at").first()
+                oldest.is_active = False
+                oldest.delete()
+
+            # --- Store user session ---
+            try:
+                session = UserSession.objects.create(
+                    account=user,
+                    refresh_token=refresh_token,
+                    ip_address=ip,
+                    user_agent=user_agent,
+                )
+                print(f"Created session ID: {session.id} for user {user.email}")
+            except Exception as e:
+                print(f"Failed to create session: {e}")
+
             student_fullname = user.student.fullname if hasattr(user, "student") else None
 
             response = JsonResponse({
@@ -326,20 +342,26 @@ class LogoutView(APIView):
 
     def post(self, request):
         user = getattr(request, "user", None)
+        refresh_token = request.COOKIES.get("refresh_token")
 
         # Send user_logged_out signal
         if user and user.is_authenticated:
+            user.last_logout_at = timezone.now()
+            user.save(update_fields=["last_logout_at"])
+
             user_logged_out.send(sender=user.__class__, request=request, user=user)
 
-        logout(request)
+        if refresh_token:
+            UserSession.objects.filter(refresh_token=refresh_token).delete()
 
-        refresh_token = request.COOKIES.get("refresh_token")
         if refresh_token:
             try:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             except Exception:
                 pass
+
+        logout(request)
 
         response = JsonResponse({"message": "Đăng xuất thành công"})
         response.delete_cookie(
@@ -596,7 +618,9 @@ class GetAllAccountsView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        accounts = Account.objects.all()
+        accounts = Account.objects.filter(
+            Q(user_type=Account.UserType.STUDENT) | Q(user_type=Account.UserType.TEACHER)
+        )
         serializer = AccountListSerializer(accounts, many=True)
         return Response(serializer.data)
 
@@ -686,3 +710,75 @@ class ResetPasswordForChangePasswordView(APIView):
             result = serializer.save()
             return Response(result, status=status.HTTP_200_OK)
         return Response({"success": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+# ==================================================
+# ADMIN: Update account (phone_number, email)
+# ==================================================
+class AdminUpdateAccountView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def put(self, request, account_id):
+        """
+        API for admin to update account
+        """
+        account = get_object_or_404(Account, account_id=account_id)
+        serializer = AdminUpdateAccountSerializer(account, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Cập nhật tài khoản thành công", "data": serializer.data},
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# ==================================================
+# ADMIN: Created account (phone_number, email, password, is_active, user_type)
+# ==================================================
+class AccountCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = AccountCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            account = serializer.save()
+            return Response(
+                {"message": "Tạo tài khoản thành công", "account_id": account.account_id},
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# ==================================================
+# ADMIN: Logout all devices
+# ==================================================
+class ForceLogoutUserView(APIView):
+    permission_classes = [IsAdminUser, IsAuthenticated]
+
+    def post(self, request, account_id):
+        try:
+            account = Account.objects.get(account_id=account_id)
+        except Account.DoesNotExist:
+            return Response({"error": "Không tìm thấy tài khoản"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Update last_logout_at
+        account.last_logout_at = timezone.now()
+        account.save(update_fields=["last_logout_at"])
+
+        # Update logout_time
+        loginLog = LoginLog.objects.get(account_id=account_id)
+        loginLog.logout_time = timezone.now()
+        loginLog.save(update_fields=["logout_time"])
+
+        # Get all sessions
+        sessions = UserSession.objects.filter(account=account)
+
+        # Blacklist and delete token
+        for s in sessions:
+            try:
+                token = RefreshToken(s.refresh_token)
+                token.blacklist()
+            except Exception:
+                pass
+        sessions.delete()
+
+        return Response(
+            {"message": f"Tất cả thiết bị của {account.email} đã bị đăng xuất."},
+            status=status.HTTP_200_OK,
+        )

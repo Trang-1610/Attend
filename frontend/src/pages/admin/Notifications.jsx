@@ -36,7 +36,7 @@ export default function NotificationManagement() {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        let intervalId;
+        let socket;
 
         const fetchUserAndNotifications = async () => {
             try {
@@ -44,23 +44,47 @@ export default function NotificationManagement() {
                 setUser(res.data);
 
                 if (res.data?.account_id) {
-                    fetchNotifications(res.data.account_id);
+                    await fetchNotifications(res.data.account_id);
+
+                    // --- Thiết lập WebSocket sau khi có user ---
+                    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+                    socket = new WebSocket(`${wsScheme}://127.0.0.1:8000/ws/notifications/${res.data.account_id}/`);
+
+                    socket.onopen = () => {
+                        console.log("✅ WebSocket connected to notifications");
+                    };
+
+                    socket.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            console.log("🔔 New notification:", data);
+                            setNotifications((prev) => [data, ...prev]);
+                            message.info(`${data.title}`);
+                        } catch (err) {
+                            console.error("WS parse error:", err);
+                        }
+                    };
+
+                    socket.onclose = () => {
+                        console.log("WebSocket disconnected");
+                    };
+
+                    socket.onerror = (err) => {
+                        console.error("WebSocket error:", err);
+                    };
                 }
             } catch (err) {
+                console.error("Lỗi khi tải user:", err);
                 setUser(null);
             }
         };
 
         fetchUserAndNotifications();
 
-        intervalId = setInterval(() => {
-            if (user?.account_id) {
-                fetchNotifications(user.account_id);
-            }
-        }, 5000);
-
-        return () => clearInterval(intervalId);
-    }, [user?.account_id]);
+        return () => {
+            if (socket) socket.close();
+        };
+    }, []);
 
     const fetchNotifications = async (accountId) => {
         setLoading(true);

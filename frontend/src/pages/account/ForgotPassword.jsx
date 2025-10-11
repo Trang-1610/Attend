@@ -14,6 +14,7 @@ const ForgotPassword = () => {
     const [loading, setLoading] = useState(false);
 
     const user = localStorage.getItem("user");
+    const userRole = user ? JSON.parse(user).role : null;
     const accountId = user ? JSON.parse(user).account_id : null;
 
     useEffect(() => {
@@ -106,16 +107,16 @@ const ForgotPassword = () => {
                     </Form>
 
                     <div className="flex flex-col items-center space-y-2 text-sm">
-                        {accountId !== null ? (
+                        {userRole === "student" ? (
                             <a
-                                href="/profile"
+                                href="/account/login/"
                                 className="text-blue-600 hover:underline"
                             >
                                 <ArrowLeftOutlined /> Quay lại
                             </a>
                         ) : (
                             <a
-                                href={`/account/login/?redirect=${randomId}`}
+                                href="/admin/dashboard"
                                 className="text-blue-600 hover:underline"
                             >
                                 <ArrowLeftOutlined /> Quay lại

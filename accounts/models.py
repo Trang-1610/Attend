@@ -61,6 +61,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_login_at = models.DateTimeField(auto_now=True)  # auto update when login
+    last_logout_at = models.DateTimeField(null=True, blank=True, default=None)
     deleted_at = models.DateTimeField(null=True, blank=True)
     otp_code = models.CharField(max_length=6, blank=True, null=True)
     otp_created_at = models.DateTimeField(blank=True, null=True)
@@ -109,7 +110,6 @@ class Role(Group):  # Changed: inherit from Group instead of custom model
         verbose_name = "Role"
         verbose_name_plural = "Roles"
 
-
 # =======================
 # Extend Permission via OneToOne
 # =======================
@@ -128,3 +128,24 @@ class PermissionMeta(models.Model):
 
     def __str__(self):
         return f"{self.permission.codename} - {self.description or 'No description'}"
+
+# =======================
+# USERSESSION MODEL
+# =======================
+class UserSession(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="sessions")
+    refresh_token = models.CharField(max_length=512, unique=True)
+    user_agent = models.TextField(blank=True, null=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    last_active = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        db_table = "user_sessions"
+        verbose_name = "User Session"
+        verbose_name_plural = "User Sessions"
+
+    def __str__(self):
+        return f"{self.account.username} - {self.ip_address or 'unknown'}"

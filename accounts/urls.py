@@ -6,7 +6,8 @@ from .views import (
     ResetPasswordLecturerView, unlock_account, LogoutView, 
     RefreshTokenView, MeView, get_csrf, GetAllAccountsView, 
     RequestOTPChangePasswordView, VerifyOTPChangePasswordView, RequestEmailChangePasswordView,
-    VerifyOtpResetPasswordView, ResendOtpView, ResetPasswordForChangePasswordView
+    VerifyOtpResetPasswordView, ResendOtpView, ResetPasswordForChangePasswordView,
+    AdminUpdateAccountView, AccountCreateView, ForceLogoutUserView
 )
 
 urlpatterns = [
@@ -46,4 +47,13 @@ urlpatterns = [
 
     # Admin
     path('get-all-accounts/', GetAllAccountsView.as_view(), name='get-all-accounts'),
+
+    # Admin update account
+    path('admin/update-account/<int:account_id>/', AdminUpdateAccountView.as_view(), name='admin-update-account'),
+
+    # Admin create account
+    path('admin/create-account/', AccountCreateView.as_view(), name='admin-create-account'),
+
+    # Force logout user
+    path('admin/force-logout-user/<int:account_id>/', ForceLogoutUserView.as_view(), name='force-logout-user'),
 ]

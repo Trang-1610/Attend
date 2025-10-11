@@ -10,7 +10,7 @@ class Command(BaseCommand):
             {
                 "email": "zephyrnguyen.vn@gmail.com",
                 "phone_number": "0862302449",
-                "password": "era2u#hvEM/Q7A3D4~Nm",
+                "password": "SDW3l)ISP2c3$_Pn<U8W",
                 "user_type": "admin",
             },
             {
@@ -27,7 +27,7 @@ class Command(BaseCommand):
         for data in admin_data:
             try:
                 # If account already exists
-                account = Account.objects.filter(email=data["email"]).first()
+                account = Account.objects.filter(email=data['email']).first()
                 if account:
                     skipped_count += 1
                     self.stdout.write(

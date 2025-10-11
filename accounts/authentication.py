@@ -1,4 +1,5 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
 
 class CookieJWTAuthentication(JWTAuthentication):
     """
@@ -17,5 +18,11 @@ class CookieJWTAuthentication(JWTAuthentication):
             validated_token = self.get_validated_token(raw_token)
         except Exception:
             return None  # Invalid token - no authentication possible
+        
+        user = self.get_user(validated_token)
+        token_iat = validated_token.get("iat")
+        if user.last_logout_at and token_iat < int(user.last_logout_at.timestamp()):
+            raise AuthenticationFailed("Token expired due to logout from another device.")
 
-        return self.get_user(validated_token), validated_token
+        # return self.get_user(validated_token), validated_token
+        return (user, validated_token)

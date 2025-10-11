@@ -6,11 +6,17 @@ from .models import Attendance
 from students.models import Department
 from .serializers import (
     AttendanceSummarySerializer, AttendanceHistorySerializer, AttendanceStatisticSerializer,
-    AttendanceStatisticTotalSerializer, AttendanceByDepartmentSerializer
+    AttendanceStatisticTotalSerializer, AttendanceByDepartmentSerializer, AttendanceByDateSerializer, AttendanceByClassSerializer
 )
 from django.db.models import Count, Q, F
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+from subjects.models import Semester
+from django.utils import timezone
+from django.db.models.functions import TruncDate
+from datetime import timedelta
+from classes.models import Class
+from django.db import transaction
 
 # ==================================================
 # Display list attendance summary by account_id
@@ -273,6 +279,120 @@ class AttendanceStatisticByDepartmentView(APIView):
 
             # Serialize and return
             serializer = AttendanceByDepartmentSerializer(result, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+# ==================================================
+# AMIN: Calulation the total of attendance session by day
+# ==================================================
+class AttendanceStatisticByDateCurrentSemesterView(APIView):
+    """
+    API to count attendance by day in the current semester.
+    - Automatically get the current semester based on the system date.
+    - Group data by day.
+    - Only count sessions with status = 'P' (Present) or 'L' (Late).
+    """
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        today = timezone.now().date()
+
+        # Get current active semester
+        semester = Semester.objects.filter(
+            start_date__lte=today,
+            end_date__gte=today
+        ).first()
+
+        if not semester:
+            return Response(
+                {"detail": "No active semester found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Calculate the last 7 days period (including today)
+        start_date = today - timedelta(days=6)
+        # Make sure the start date does not go before the semester start date
+        start_date = max(start_date, semester.start_date)
+        end_date = min(today, semester.end_date)
+
+        # Filter attendances within the last 7 days and the current semester
+        attendances = Attendance.objects.filter(
+            schedule__start_time__date__gte=start_date,
+            schedule__start_time__date__lte=end_date
+        )
+
+        # Group by date (truncate time to date only)
+        grouped = (
+            attendances
+            .annotate(date=TruncDate('schedule__start_time'))
+            .values('date')
+            .annotate(attendance=Count('attendance_id'))
+            .order_by('date')
+        )
+
+        # Ensure we return 7 days even if no attendance data (fill zeros)
+        result = []
+        for i in range(7):
+            day = start_date + timedelta(days=i)
+            found = next((g for g in grouped if g['date'] == day), None)
+            result.append({
+                "date": day.strftime("%d/%m/%Y"),
+                "attendance": found["attendance"] if found else 0
+            })
+
+        serializer = AttendanceByDateSerializer(result, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+# ==================================================
+# AMIN: Calulation the total of attendance session by class
+# ==================================================
+class AttendanceStatisticByClassView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        try:
+            # Optimize: select_related để giảm số query JOIN
+            queryset = Attendance.objects.select_related("schedule__class_id")
+
+            with transaction.atomic():
+                queryset = queryset.only("status", "schedule__class_obj__class_name")
+
+            # Group by class to calculate attendance counts
+            grouped = (
+                queryset.values(
+                    class_id=F("schedule__class_id__class_id"),
+                    class_name=F("schedule__class_id__class_name"),
+                )
+                .annotate(
+                    total_sessions=Count("attendance_id"),
+                    present_sessions=Count("attendance_id", filter=Q(status="P")),
+                    late_sessions=Count("attendance_id", filter=Q(status="L")),
+                    absent_sessions=Count("attendance_id", filter=Q(status="A")),
+                )
+                .order_by("class_name")
+            )
+
+            # Calculate percentages efficiently
+            result = []
+            for g in grouped:
+                total = g["total_sessions"] or 0
+                present = g["present_sessions"] or 0
+                late = g["late_sessions"] or 0
+                absent = g["absent_sessions"] or 0
+
+                result.append({
+                    "class_id": g["class_id"],
+                    "class_name": g["class_name"],
+                    "total_sessions": total,
+                    "present_sessions": present,
+                    "late_sessions": late,
+                    "absent_sessions": absent,
+                    "present_rate": round((present / total * 100), 2) if total > 0 else 0,
+                    "late_rate": round((late / total * 100), 2) if total > 0 else 0,
+                    "absent_rate": round((absent / total * 100), 2) if total > 0 else 0,
+                })
+
+            serializer = AttendanceByClassSerializer(result, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except Exception as e:

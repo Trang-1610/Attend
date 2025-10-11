@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Table, Button, Tag, Space, message, Modal, Descriptions } from 'antd';
 import {
     SearchOutlined,
-    PlusOutlined,
+    // PlusOutlined,
     ReloadOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -26,16 +26,10 @@ export default function SubjectManagement() {
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedClass, setSelectedClass] = useState(null);
+    const [selectedClass, ] = useState(null); // setSelectedClass
 
     useEffect(() => {
         document.title = "ATTEND 3D - Subject Management";
-
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-            window.location.href = "/account/login";
-            return;
-        }
 
         fetchSubjects();
     }, []);
@@ -119,10 +113,10 @@ export default function SubjectManagement() {
         setSearchText('');
     };
 
-    const handleDetail = (record) => {
-        setSelectedClass(record);
-        setIsModalOpen(true);
-    };
+    // const handleDetail = (record) => {
+    //     setSelectedClass(record);
+    //     setIsModalOpen(true);
+    // };
 
     const handleCancel = () => {
         setIsModalOpen(false);
@@ -185,29 +179,29 @@ export default function SubjectManagement() {
             ],
             onFilter: (value, record) => record.status === value,
         },
-        {
-            title: 'Hành động',
-            key: 'actions',
-            render: (_, record) => (
-                <Space>
-                    <Button size="small" onClick={() => handleDetail(record)}>Chi tiết</Button>
-                    <Button size="small" danger onClick={() => handleDelete(record)}>Sửa</Button>
-                </Space>
-            ),
-        },
+        // {
+        //     title: 'Hành động',
+        //     key: 'actions',
+        //     render: (_, record) => (
+        //         <Space>
+        //             <Button size="small" onClick={() => handleDetail(record)}>Chi tiết</Button>
+        //             <Button size="small" danger onClick={() => handleDelete(record)}>Sửa</Button>
+        //         </Space>
+        //     ),
+        // },
     ];
 
-    const handleDelete = async (subject) => {
-        try {
-            await fetch(`http://127.0.0.1:8000/api/v1/subjects/delete/${subject.id}`, {
-                method: 'DELETE',
-            });
-            message.success("Xoá thành công!");
-            fetchSubjects();
-        } catch (err) {
-            message.error("Xoá thất bại!");
-        }
-    };
+    // const handleDelete = async (subject) => {
+    //     try {
+    //         await fetch(`http://127.0.0.1:8000/api/v1/subjects/delete/${subject.id}`, {
+    //             method: 'DELETE',
+    //         });
+    //         message.success("Xoá thành công!");
+    //         fetchSubjects();
+    //     } catch (err) {
+    //         message.error("Xoá thất bại!");
+    //     }
+    // };
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
@@ -228,13 +222,13 @@ export default function SubjectManagement() {
                             >
                                 Làm mới
                             </Button>
-                            <Button
+                            {/* <Button
                                 type="primary"
                                 icon={<PlusOutlined />}
                                 href="/admin/academics/subjects/create"
                             >
                                 Thêm môn học
-                            </Button>
+                            </Button> */}
                         </Space>
                     </div>
 

@@ -47,3 +47,24 @@ def get_schedule_info(student_id, subject_id):
             "lesson_start": row[5],
             "occurrence_start": row[6],
         }
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
+def send_notification_to_user(account_id, data: dict):
+    """
+    Gửi thông báo realtime đến user qua Channels Layer.
+    """
+    channel_layer = get_channel_layer()
+    if not channel_layer:
+        print("[Realtime] Channel layer chưa được cấu hình.")
+        return
+
+    group_name = f"user_{account_id}"
+
+    async_to_sync(channel_layer.group_send)(
+        group_name,
+        {
+            "type": "send_notification",
+            "content": data,
+        },
+    )

@@ -106,8 +106,6 @@ export default function AddRequest() {
                                                 leave_data: leaveData, 
                                                 to_target: leaveData?.lecturer_id,
                                             };
-    
-                                            console.log(payload);
         
                                             await api.post("leaves/leave-requests/", payload);
         

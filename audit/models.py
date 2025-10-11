@@ -20,7 +20,7 @@ class AuditLog(models.Model):
     changed_by = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
     changed_at = models.DateTimeField(auto_now_add=True)
 
-    ip_address = models.GenericIPAddressField(null=True, blank=True)  # thay CharField bằng chuẩn IP
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(null=True, blank=True)
 
     record_id = models.CharField(max_length=255, null=True, blank=True)

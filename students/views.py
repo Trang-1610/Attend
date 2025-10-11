@@ -5,11 +5,11 @@ from .serializers import (
     StudentSerializer, DepartmentSerializer, MajorSerializer, 
     AllStudentGetListSerializer, StudentCreateSerializer, StudentUpdateSerializer, 
     SubjectRegistrationRequestSerializer, StudentScheduleSerializer, StudentSubjectBySemesterSerializer,
-    StudentSemesterAcademicYearSerializer, AdminScheduleManagementSerializer, StudentCodeSerializer, TotalStudentSerializer
+    StudentSemesterAcademicYearSerializer, AdminScheduleManagementSerializer, StudentCodeSerializer, TotalStudentSerializer, 
+    ApproveScheduleSerializer, CountSubjectRegistrationRequestSerializer
 )
 from .models import Department, Major
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
 from students.serializers import StudentGetListSerializer
 from .models import Student, StudentSubject, SubjectRegistrationRequest
 from rest_framework.decorators import api_view, permission_classes
@@ -469,6 +469,7 @@ class AdminScheduleManagementView(APIView):
         query = """
         SELECT DISTINCT ON (sch.schedule_id)
             srr.subject_registration_request_id,
+            srr.reason,
             srr.status AS register_status,
             srr.created_at,
             st.student_code,
@@ -537,4 +538,89 @@ class TotalStudentView(APIView):
     def get(self, request):
         total = Student.objects.count()
         serializer = TotalStudentSerializer({'total_student': total})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+# ==================================================
+# ADMIN: Approve subject registration request
+# ==================================================
+class AdminApproveScheduleView(APIView):
+    """
+    Admin API for calendar review — update only:
+    - reason
+    - approved_by_id (auto-fetched from request.user)
+    """
+    permission_classes = [IsAdminUser]
+
+    def put(self, request):
+        request_ids = request.data.get("request_ids")
+        reason = request.data.get("reason")
+
+        if not request_ids or not isinstance(request_ids, list):
+            return Response(
+                {"error": "request_ids phải là danh sách các ID hợp lệ."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not reason:
+            return Response(
+                {"error": "Vui lòng nhập lý do duyệt."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        updated_count = SubjectRegistrationRequest.objects.filter(
+            pk__in=request_ids
+        ).update(
+            reason=reason,
+            approved_by=request.user
+        )
+
+        return Response({
+            "message": f"Đã cập nhật {updated_count} lịch học thành công.",
+            "updated_count": updated_count
+        }, status=status.HTTP_200_OK)
+# ==================================================
+# ADMIN: Approve subject registration request
+# ==================================================
+
+# ==================================================
+# Count subject registration request
+# ==================================================
+class CountSubjectRegistrationRequestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, account_id):
+        try:
+            account = Account.objects.prefetch_related('groups').get(account_id=account_id)
+        except Account.DoesNotExist:
+            return Response(
+                {"detail": "Tài khoản không tồn tại."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        is_student_role = account.groups.filter(name="student").exists()
+        is_student_type = account.user_type == "student"
+
+        if not (is_student_role and is_student_type):
+            return Response(
+                {"detail": "Bạn không có quyền truy cập tài nguyên này."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        count_number_subject_registration = SubjectRegistrationRequest.objects.filter(
+            student__account_id=account_id
+        ).count()
+
+        last_request = (
+            SubjectRegistrationRequest.objects
+            .filter(student__account_id=account_id)
+            .order_by('-created_at')
+            .first()
+        )
+
+        status_value = last_request.status if last_request else None
+
+        serializer = CountSubjectRegistrationRequestSerializer({
+            "count_number_subject_registration": count_number_subject_registration,
+            "status": status_value
+        })
+
         return Response(serializer.data, status=status.HTTP_200_OK)

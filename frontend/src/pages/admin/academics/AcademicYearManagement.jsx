@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Table, Button, Space, message } from 'antd';
 import {
     SearchOutlined,
-    PlusOutlined,
+    // PlusOutlined,
     ReloadOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../../../components/Layout/Sidebar';
 import Navbar from '../../../components/Layout/Navbar';
 import Highlighter from 'react-highlight-words';
+import api from '../../../api/axiosInstance';
 
 const { Header } = Layout;
 
@@ -29,15 +30,10 @@ export default function AcademicYearManagement() {
     }, []);
 
     const fetchAcademicYears = async () => {
-        const token = localStorage.getItem("access_token");
         try {
             setLoading(true);
-            const res = await fetch('http://127.0.0.1:8000/api/v1/academic-years/all/', {
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                },
-            });
-            const data = await res.json();
+            const res = await api.get('academic-years/all/');
+            const data = await res.data;
             setAcademicYears(data);
         } catch (error) {
             message.error("Lỗi khi tải danh sách năm học.");
@@ -119,33 +115,33 @@ export default function AcademicYearManagement() {
             key: 'academic_year_name',
             ...getColumnSearchProps('academic_year_name'),
         },
-        {
-            title: 'Hành động',
-            key: 'actions',
-            render: (_, record) => (
-                <Space>
-                    <Button size="small" onClick={() => handleDetail(record)}>Chi tiết</Button>
-                    <Button size="small" danger onClick={() => handleDelete(record)}>Xóa</Button>
-                </Space>
-            ),
-        },
+        // {
+        //     title: 'Hành động',
+        //     key: 'actions',
+        //     render: (_, record) => (
+        //         <Space>
+        //             <Button size="small" onClick={() => handleDetail(record)}>Chi tiết</Button>
+        //             <Button size="small" danger onClick={() => handleDelete(record)}>Xóa</Button>
+        //         </Space>
+        //     ),
+        // },
     ];
 
-    const handleDetail = (academicYear) => {
-        console.log("Chi tiết năm học", academicYear);
-    };
+    // const handleDetail = (academicYear) => {
+    //     console.log("Chi tiết năm học", academicYear);
+    // };
 
-    const handleDelete = async (academicYear) => {
-        try {
-            await fetch(`/api/v1/academic-years/${academicYear.academic_year_id}`, {
-                method: 'DELETE',
-            });
-            message.success("Xoá thành công!");
-            fetchAcademicYears();
-        } catch (err) {
-            message.error("Xoá thất bại!");
-        }
-    };
+    // const handleDelete = async (academicYear) => {
+    //     try {
+    //         await fetch(`/api/v1/academic-years/${academicYear.academic_year_id}`, {
+    //             method: 'DELETE',
+    //         });
+    //         message.success("Xoá thành công!");
+    //         fetchAcademicYears();
+    //     } catch (err) {
+    //         message.error("Xoá thất bại!");
+    //     }
+    // };
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
@@ -166,13 +162,13 @@ export default function AcademicYearManagement() {
                             >
                                 Làm mới
                             </Button>
-                            <Button
+                            {/* <Button
                                 type="primary"
                                 icon={<PlusOutlined />}
                                 href="/admin/academic-years/create"
                             >
                                 Thêm năm học
-                            </Button>
+                            </Button> */}
                         </Space>
                     </div>
 

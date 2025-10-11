@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Layout, Spin } from 'antd';
 import { useTranslation } from 'react-i18next';
 import AttendanceBarChartDepartment from '../../components/Chart/AttendanceBarChartDepartment';
-import AttendancePieChart from '../../components/Chart/AttendancePieChart';
 import AttendanceLineChart from '../../components/Chart/AttendanceLineChart';
 import AttendanceAreaChart from '../../components/Chart/AttendanceAreaChart';
-import AttendanceRadarChart from '../../components/Chart/AttendanceRadarChart';
 import Sidebar from '../../components/Layout/Sidebar';
 import Navbar from '../../components/Layout/Navbar';
 import api from '../../api/axiosInstance';
@@ -38,6 +36,12 @@ export default function Dashboard() {
     const [attendanceByDepartment, setAttendanceByDepartment] = useState([]);
     const [loadingAttendanceByDepartment, setLoadingAttendanceByDepartment] = useState(false);
 
+    const [attendanceByDate, setAttendanceByDate] = useState([]);
+    const [loadingAttendanceByDate, setLoadingAttendanceByDate] = useState(false);
+
+    const [attendanceByClass, setAttendanceByClass] = useState([]);
+    const [loadingAttendanceByClass, setLoadingAttendanceByClass] = useState(false);
+
     useEffect(() => {
         document.title = "ATTEND 3D - Dashboard";
 
@@ -46,7 +50,8 @@ export default function Dashboard() {
         fetchTotalAttendance();
 
         fetchAcademicYear();
-        fetchSemesters();
+        fetchAttendanceByDate();
+        fetchAttendanceByClass();
     }, [t]);
 
     const fetchTotalStudent = async () => {
@@ -110,10 +115,10 @@ export default function Dashboard() {
         }
     }, [selectedYear]);
     
-    const fetchSemesters = async (yearId) => {
+    const fetchSemesters = async (selectedYear) => {
         setLoadingSemester(true);
         try {
-            const res = await api.get(`semesters/${yearId}/`);
+            const res = await api.get(`semesters/${selectedYear}/`);
             setSemesters(res.data);
     
             if (res.data.length > 0) {
@@ -148,39 +153,37 @@ export default function Dashboard() {
         }
     };    
 
+    const fetchAttendanceByDate = async () => {
+        setLoadingAttendanceByDate(true);
+        try {
+            const res = await api.get('attendance/admin/attendance-statistics-by-date-current-semester/');
+            setAttendanceByDate(res.data);
+        } catch (error) {
+            console.error('Lỗi khi tải thống kê điểm danh theo ngày:', error);
+            setAttendanceByDate([]);
+        } finally {
+            setLoadingAttendanceByDate(false);
+        }
+    };
+
+    const fetchAttendanceByClass = async () => {
+        setLoadingAttendanceByClass(true);
+        try {
+            const res = await api.get('attendance/admin/attendance-statistics-by-class/');
+            setAttendanceByClass(res.data);
+        } catch (error) {
+            console.error('Lỗi khi tải thống kê điểm danh theo lớp:', error);
+            setAttendanceByClass([]);
+        } finally {
+            setLoadingAttendanceByClass(false);
+        }
+    };
+
     const summaryCards = [
         { icon: 'fas fa-users', color: 'text-blue-500', label: 'Tổng số sinh viên', value: loadingTotalStudent ? <Spin /> : totalStudent },
         { icon: 'fa-solid fa-person-chalkboard', color: 'text-blue-500', label: 'Tổng số giảng viên', value: loadingTotalLecturer ? <Spin /> : totalLecturer },
         { icon: 'fas fa-check-circle', color: 'text-green-500', label: 'Tổng số buổi điểm danh', value: loadingTotalAttendance ? <Spin /> : totalAttendance?.total_sessions },
         { icon: 'fa-solid fa-person-chalkboard', color: 'text-yellow-500', label: 'Tổng số buổi điểm danh %', value: loadingTotalAttendance ? <Spin /> : totalAttendance?.total_sessions_precent },
-    ];
-
-    const pieData = [
-        { name: 'Đi học', value: 320 },
-        { name: 'Vắng mặt', value: 80 },
-    ];
-
-    const lineData = [
-        { date: '01/06', attendance: 90 },
-        { date: '02/06', attendance: 85 },
-        { date: '03/06', attendance: 88 },
-        { date: '04/06', attendance: 92 },
-        { date: '05/06', attendance: 87 },
-    ];
-
-    const areaData = [
-        { class: 'Lớp A', total: 150 },
-        { class: 'Lớp B', total: 180 },
-        { class: 'Lớp C', total: 200 },
-        { class: 'Lớp D', total: 170 },
-    ];
-
-    const radarData = [
-        { faculty: 'CNTT', attendance: 98 },
-        { faculty: 'Kinh tế', attendance: 85 },
-        { faculty: 'Ngôn ngữ', attendance: 75 },
-        { faculty: 'Luật', attendance: 90 },
-        { faculty: 'Xã hội', attendance: 80 },
     ];
 
     return (
@@ -226,27 +229,35 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div className="w-full h-64 bg-white rounded shadow p-6">
-                            <h2 className="text-lg font-semibold mb-2">Tỉ lệ điểm danh</h2>
-                            <AttendancePieChart data={pieData} />
+                    <div className="w-full bg-white rounded shadow p-6 mb-4">
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 space-y-2 md:space-y-0 md:space-x-4">
+                            <h2 className="text-lg font-semibold">Thống kê điểm danh theo 7 ngày gần nhất</h2>
                         </div>
 
-                        <div className="w-full h-64 bg-white rounded shadow p-6">
-                            <h2 className="text-lg font-semibold mb-2">Xu hướng điểm danh theo ngày</h2>
-                            <AttendanceLineChart data={lineData} />
+                        <div className="w-full h-64">
+                            {loadingAttendanceByDate ? (
+                                <div className="flex justify-center items-center h-64">
+                                    <Spin />
+                                </div>
+                            ) : (
+                                <AttendanceLineChart data={attendanceByDate} />
+                            )}
                         </div>
                     </div>
 
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-4'>
-                        <div className="w-full h-64 bg-white rounded shadow p-6">
-                            <h2 className="text-lg font-semibold mb-2">Điểm danh theo lớp</h2>
-                            <AttendanceAreaChart data={areaData} />
+                    <div className="w-full bg-white rounded shadow p-6 mb-4">
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 space-y-2 md:space-y-0 md:space-x-4">
+                            <h2 className="text-lg font-semibold">Thống kê điểm danh theo lớp</h2>
                         </div>
 
-                        <div className="w-full h-64 bg-white rounded shadow p-6">
-                            <h2 className="text-lg font-semibold mb-2">So sánh điểm danh giữa các khoa</h2>
-                            <AttendanceRadarChart data={radarData} />
+                        <div className="w-full h-64">
+                            {loadingAttendanceByClass ? (
+                                <div className="flex justify-center items-center h-64">
+                                    <Spin />
+                                </div>
+                            ) : (
+                                <AttendanceAreaChart data={attendanceByClass} />
+                            )}
                         </div>
                     </div>
                 </main>

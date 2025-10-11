@@ -14,46 +14,93 @@ import { useTranslation } from "react-i18next";
 import Header from "../../components/Layout/Header";
 import Footer from "../../components/Layout/Footer";
 import api from "../../api/axiosInstance";
+import { useAppContext } from "../../context/Context";
 
 export default function NotificationPage() {
     const { t } = useTranslation();
-    const [notifications, setNotifications] = useState([]);
+    // const [notifications, setNotifications] = useState([]);
+    const { notifications, setNotifications, user } = useAppContext();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("all");
 
-    const user = JSON.parse(localStorage.getItem("user"));
-    const accountId = user?.account_id;
+    // const user = JSON.parse(localStorage.getItem("user"));
+    // const accountId = user?.account_id;
 
+    // const fetchNotifications = useCallback(
+    //     async (type) => {
+    //         if (!accountId) return;
+    //         setLoading(true);
+
+    //         let url = `/notifications/${accountId}/all/`;
+    //         if (type === "unread") url = `/notifications/${accountId}/unread/`;
+    //         if (type === "read") url = `/notifications/${accountId}/read/`;
+
+    //         try {
+    //             const res = await api.get(url);
+    //             setNotifications(Array.isArray(res.data) ? res.data : []);
+    //         } catch (error) {
+    //             console.error("API error:", error);
+    //             message.error("Không tải được thông báo.");
+    //             setNotifications([]);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     },
+    //     [accountId]
+    // );
     const fetchNotifications = useCallback(
-        async (type) => {
-            if (!accountId) return;
-            setLoading(true);
+    async (type) => {
+        if (!user?.account_id) return; // thay accountId thành user?.account_id
+        setLoading(true);
 
-            let url = `/notifications/${accountId}/all/`;
-            if (type === "unread") url = `/notifications/${accountId}/unread/`;
-            if (type === "read") url = `/notifications/${accountId}/read/`;
+        let url = `/notifications/${user.account_id}/all/`;
+        if (type === "unread") url = `/notifications/${user.account_id}/unread/`;
+        if (type === "read") url = `/notifications/${user.account_id}/read/`;
 
-            try {
-                const res = await api.get(url);
-                setNotifications(Array.isArray(res.data) ? res.data : []);
-            } catch (error) {
-                console.error("API error:", error);
-                message.error("Không tải được thông báo.");
-                setNotifications([]);
-            } finally {
-                setLoading(false);
-            }
-        },
-        [accountId]
-    );
-
-    useEffect(() => {
-        fetchNotifications(activeTab);
-    }, [accountId, activeTab, fetchNotifications, t]);
-
-    const markAsRead = async (notificationId) => {
         try {
-            await api.post(`/notifications/${accountId}/mark-read/`, {
+            const res = await api.get(url);
+            setNotifications(Array.isArray(res.data) ? res.data : []);
+        } catch (error) {
+            console.error("API error:", error);
+            message.error("Không tải được thông báo.");
+            setNotifications([]);
+        } finally {
+            setLoading(false);
+        }
+    },
+    [user, setNotifications]
+);
+
+    // useEffect(() => {
+    //     fetchNotifications(activeTab);
+    // }, [accountId, activeTab, fetchNotifications, t]);
+    useEffect(() => {
+    fetchNotifications(activeTab);
+}, [user, activeTab, fetchNotifications, t]); 
+
+    // const markAsRead = async (notificationId) => {
+    //     try {
+    //         await api.post(`/notifications/${accountId}/mark-read/`, {
+    //             notification_id: notificationId,
+    //         });
+
+    //         setNotifications((prev) =>
+    //             prev.map((n) =>
+    //                 n.notification_id === notificationId ? { ...n, is_read: "1" } : n
+    //             )
+    //         );
+
+    //         message.success("Đã cập nhật trạng thái thông báo.");
+    //     } catch (error) {
+    //         console.error("Update error:", error);
+    //         message.error("Không thể cập nhật thông báo.");
+    //     }
+    // };
+    const markAsRead = async (notificationId) => {
+        if (!user?.account_id) return;
+
+        try {
+            await api.post(`/notifications/${user.account_id}/mark-read/`, {
                 notification_id: notificationId,
             });
 

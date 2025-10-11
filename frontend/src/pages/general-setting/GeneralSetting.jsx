@@ -1,21 +1,27 @@
 import React, { useEffect } from "react";
-import { Button, Input, Card, Breadcrumb, Select, Slider, Switch } from "antd";
-import { HomeOutlined, PhoneOutlined, MailOutlined, BellOutlined, BgColorsOutlined, GlobalOutlined, LockOutlined, SkinOutlined, } from "@ant-design/icons";
+import { Button, Card, Breadcrumb, Select, Slider } from "antd";
+import { HomeOutlined, PhoneOutlined, BgColorsOutlined, LockOutlined, SkinOutlined, } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import Footer from "../../components/Layout/Footer";
 import Header from "../../components/Layout/Header";
 import { useTheme } from "../../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 
 export default function GeneralSetting() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { themeMode, setThemeMode, brightness, setBrightness } = useTheme();
 
     useEffect(() => {
-        document.title = "ATTEND 3D - " + t("contact");
+        document.title = "ATTEND 3D - " + t("general_setting");
 
     }, [t, brightness]);
+
+    const handChangePassword = () => {
+        navigate("/account/forgot-password/");
+    };
 
     return (
         <div className="min-h-screen bg-white text-gray-800 dark:bg-black dark:text-white flex flex-col">
@@ -42,40 +48,6 @@ export default function GeneralSetting() {
                         <Card
                             title={
                                 <div className="flex items-center gap-2">
-                                    <MailOutlined /> Email
-                                </div>
-                            }
-                        >
-                            <p className="mb-2 text-sm text-gray-500">
-                                Thay đổi email xác thực của bạn.
-                            </p>
-                            <Input
-                                placeholder="example@email.com"
-                                type="email"
-                                size="large"
-                                style={{ borderWidth: 1.5, boxShadow: "none" }}
-                            />
-                            <Button type="primary" className="mt-3" size="large">
-                                Lưu
-                            </Button>
-                        </Card>
-
-                        <Card
-                            title={
-                                <div className="flex items-center gap-2">
-                                    <BellOutlined /> Thông báo
-                                </div>
-                            }
-                        >
-                            <p className="mb-2 text-sm text-gray-500">
-                                Bật/tắt thông báo cho tài khoản này.
-                            </p>
-                            <Switch defaultChecked />
-                        </Card>
-
-                        <Card
-                            title={
-                                <div className="flex items-center gap-2">
                                     <BgColorsOutlined /> Độ sáng màn hình
                                 </div>
                             }
@@ -94,26 +66,6 @@ export default function GeneralSetting() {
                         <Card
                             title={
                                 <div className="flex items-center gap-2">
-                                    <GlobalOutlined /> Ngôn ngữ
-                                </div>
-                            }
-                        >
-                            <p className="mb-2 text-sm text-gray-500">
-                                Chọn ngôn ngữ hiển thị.
-                            </p>
-                            <Select
-                                defaultValue="vi"
-                                className="w-full custom-select"
-                                size="large"
-                            >
-                                <Option value="vi">Tiếng Việt (Vietnamese)</Option>
-                                <Option value="en">Tiếng Anh (English)</Option>
-                            </Select>
-                        </Card>
-
-                        <Card
-                            title={
-                                <div className="flex items-center gap-2">
                                     <LockOutlined /> Bảo mật
                                 </div>
                             }
@@ -121,10 +73,9 @@ export default function GeneralSetting() {
                             <p className="mb-2 text-sm text-gray-500">
                                 Cập nhật mật khẩu hoặc bật xác thực 2 yếu tố.
                             </p>
-                            <Button className="w-full mb-2" size="large" type="primary">
+                            <Button className="w-full mb-2" size="large" type="primary" onClick={handChangePassword}>
                                 Đổi mật khẩu
                             </Button>
-                            <Switch /> <span className="ml-2">Bật xác thực 2 lớp</span>
                         </Card>
 
                         <Card
@@ -148,59 +99,6 @@ export default function GeneralSetting() {
                                 <Option value="dark">Tối</Option>
                                 <Option value="auto">Tự động</Option>
                             </Select>
-                        </Card>
-
-                        <Card
-                            title={
-                                <div className="flex items-center gap-2">
-                                    <LockOutlined /> Đăng xuất tự động
-                                </div>
-                            }
-                        >
-                            <p className="mb-2 text-sm text-gray-500">
-                                Thiết lập thời gian không hoạt động trước khi tự động đăng xuất.
-                            </p>
-                            <Select
-                                defaultValue={0}
-                                className="w-full custom-select"
-                                size="large"
-                            >
-                                <Option value={0}>Không</Option>
-                                <Option value={5}>5 phút</Option>
-                                <Option value={15}>15 phút</Option>
-                                <Option value={30}>30 phút</Option>
-                                <Option value={60}>60 phút</Option>
-                            </Select>
-                        </Card>
-
-                        <Card
-                            title={
-                                <div className="flex items-center gap-2">
-                                    <LockOutlined /> Quyền riêng tư
-                                </div>
-                            }
-                        >
-                            <p className="mb-2 text-sm text-gray-500">
-                                Quản lý chia sẻ thông tin cá nhân.
-                            </p>
-                            <Switch defaultChecked />{" "}
-                            <span className="ml-2">Cho phép hiển thị email</span>
-                            <br />
-                            <Switch className="mt-2" />{" "}
-                            <span className="ml-2">Ẩn trạng thái hoạt động</span>
-                        </Card>
-
-                        <Card
-                            title={
-                                <div className="flex items-center gap-2">
-                                    <BellOutlined /> Âm thanh thông báo
-                                </div>
-                            }
-                        >
-                            <p className="mb-2 text-sm text-gray-500">
-                                Bật âm thanh khi có thông báo mới.
-                            </p>
-                            <Switch defaultChecked />
                         </Card>
                     </div>
                 </main>

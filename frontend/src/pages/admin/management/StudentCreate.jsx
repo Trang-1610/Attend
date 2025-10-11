@@ -41,7 +41,7 @@ const StudentCreate = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        document.title = "ATTEND 3D - Create Student";
+        document.title = "ATTEND 3D - Tạo tài khoản sinh viên";
     }, [t]);
 
     const edit = (record) => {

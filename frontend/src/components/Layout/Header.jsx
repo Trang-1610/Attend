@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Avatar, Dropdown, message, Popover, Badge, Drawer, Menu, Modal } from "antd";
 import { PhoneOutlined, ScanOutlined, SettingOutlined, MenuOutlined, UserOutlined, BarChartOutlined, PlusCircleOutlined, WechatWorkOutlined, AuditOutlined, LogoutOutlined, UserSwitchOutlined, BellOutlined, } from "@ant-design/icons";
 
@@ -11,35 +11,35 @@ import { useLocation } from "react-router-dom";
 import SoundMessage from "../../assets/sounds/message.mp3";
 import playSound from "../../utils/playSound";
 import {Icons} from "../Icons/Icons";
+import { useAppContext } from "../../context/Context";
 
 export default function Header() {
+
+    const { notifications, setNotifications, user } = useAppContext();
+
     const [openDrawer, setOpenDrawer] = useState(false);
     const { t } = useTranslation();
     const [selectedKeys, setSelectedKeys] = useState([]);
-    const [user, setUser] = useState(null);
-    const [notifications, setNotifications] = useState([]);
+    // const [user, setUser] = useState(null);
+    // const [notifications, setNotifications] = useState([]);
     const location = useLocation();
 
     const userRole = user?.role;
 
-    const fetchNotifications = useCallback(async (accountId, checkNew = false) => {
-        try {
-            const res = await api.get(`notifications/${accountId}/unread/`);
-            const data = Array.isArray(res.data) ? res.data : [];
-    
-            setNotifications((prev) => {
-                if (checkNew && data.length > prev.length) {
-                    playSound(SoundMessage);
-                }
-                return data;
-            });            
-    
-            // setNotifications(data);
-        } catch (error) {
-            message.error("Không tải được thông báo.");
-            setNotifications([]);
-        }
-    }, []);
+    useEffect(() => {
+        if (!user?.account_id) return;
+
+        const fetchInitialNotifications = async () => {
+            try {
+                const res = await api.get(`notifications/${user.account_id}/unread/`);
+                setNotifications(Array.isArray(res.data) ? res.data : []);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchInitialNotifications();
+    }, [user?.account_id, setNotifications]);
 
     useEffect(() => {
         const path = location.pathname;
@@ -55,62 +55,57 @@ export default function Header() {
         else setSelectedKeys([]);
     }, [location]);
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const res = await api.get("/accounts/me/", { withCredentials: true });
-                setUser(res.data);
-            } catch {
-                setUser(null);
-            }
-        };
+    // useEffect(() => {
+    //     const fetchUser = async () => {
+    //         try {
+    //             const res = await api.get("/accounts/me/", { withCredentials: true });
+    //             setUser(res.data);
+    //         } catch {
+    //             setUser(null);
+    //         }
+    //     };
 
-        fetchUser();
-    }, []);
+    //     fetchUser();
+    // }, []);
 
     useEffect(() => {
         if (!user?.account_id) return;
 
-        const intervalId = setInterval(() => {
-            fetchNotifications(user.account_id, true);
-        }, 50000);
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const socket = new WebSocket(`${wsScheme}://127.0.0.1:8000/ws/notifications/${user.account_id}/`);
 
-        fetchNotifications(user.account_id, false);
+        socket.onopen = () => {
+            console.log("WebSocket connected");
+        };
 
-        return () => clearInterval(intervalId);
-    }, [user?.account_id, fetchNotifications]);
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                playSound(SoundMessage);
+                if (data.unread_count !== undefined) {
+                    setNotifications((prev) =>
+                        prev.map(n => data.ids.includes(n.id) ? { ...n, is_read: '1' } : n)
+                    );
+                } else {
+                    setNotifications((prev) => [data, ...prev]);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
 
-    // useEffect(() => {
-    //     if (!user?.account_id) return;
+        socket.onclose = () => {
+            console.log("WebSocket closed");
+        };
 
-    //     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-    //     const socket = new WebSocket("ws://127.0.0.1:8000/ws/notifications/" + user.account_id + "/");
+        socket.onerror = (err) => {
+            console.error("WebSocket error:", err);
+        };
 
-    //     socket.onopen = () => {
-    //         console.log("WebSocket connected");
-    //     };
-
-    //     socket.onmessage = (event) => {
-    //         try {
-    //             const data = JSON.parse(event.data);
-    //             setNotifications((prev) => [data, ...prev]);
-    //         } catch (err) {
-    //             console.error("Error parsing WS message:", err);
-    //         }
-    //     };
-
-    //     socket.onclose = () => {
-    //         console.log("WebSocket closed");
-    //     };
-
-    //     socket.onerror = (err) => {
-    //         console.error("WebSocket error:", err);
-    //     };
-
-    //     return () => {
-    //         socket.close();
-    //     };
-    // }, [user?.account_id]);
+        return () => {
+            socket.close();
+        };
+    }, [user?.account_id, setNotifications]);
 
     const handleLogout = () => {
         Modal.confirm({
@@ -152,7 +147,7 @@ export default function Header() {
                     {
                         key: "admin",
                         label: (
-                            <a href="/admin/dashboard" target="_blank" rel="noopener noreferrer">
+                            <a href="/admin/dashboard">
                                 Admin
                             </a>
                         ),

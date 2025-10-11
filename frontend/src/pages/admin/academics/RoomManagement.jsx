@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Table, Button, Tag, Space, message } from 'antd';
 import {
     SearchOutlined,
-    PlusOutlined,
+    // PlusOutlined,
     ReloadOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../../../components/Layout/Sidebar';
 import Navbar from '../../../components/Layout/Navbar';
 import Highlighter from 'react-highlight-words';
+import api from '../../../api/axiosInstance';
 
 const { Header } = Layout;
 
@@ -29,15 +30,10 @@ export default function RoomManagement() {
     }, []);
 
     const fetchRooms = async () => {
-        const token = localStorage.getItem("access_token");
         try {
             setLoading(true);
-            const res = await fetch('http://127.0.0.1:8000/api/v1/rooms/all/', {
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                },
-            }); 
-            const data = await res.json();
+            const res = await api.get('rooms/all/'); 
+            const data = res.data;
             setRooms(data);
         } catch (error) {
             message.error("Lỗi khi tải danh sách phòng.");
@@ -109,9 +105,9 @@ export default function RoomManagement() {
     const columns = [
         {
             title: 'Mã phòng',
-            dataIndex: 'room_id',
-            key: 'roomId',
-            ...getColumnSearchProps('roomId'),
+            dataIndex: 'room_code',
+            key: 'room_code',
+            ...getColumnSearchProps('room_code'),
         },
         {
             title: 'Tên phòng',
@@ -161,34 +157,33 @@ export default function RoomManagement() {
             ],
             onFilter: (value, record) => record.status === value,
         },          
-        {
-            title: 'Hành động',
-            key: 'actions',
-            render: (_, record) => (
-                <Space>
-                    <Button size="small" onClick={() => handleDetail(record)}>Chi tiết</Button>
-                    <Button size="small" danger onClick={() => handleDelete(record)}>Xóa</Button>
-                </Space>
-            ),
-        },
+        // {
+        //     title: 'Hành động',
+        //     key: 'actions',
+        //     render: (_, record) => (
+        //         <Space>
+        //             <Button size="small" onClick={() => handleDetail(record)}>Chi tiết</Button>
+        //             <Button size="small" danger onClick={() => handleDelete(record)}>Xóa</Button>
+        //         </Space>
+        //     ),
+        // },
     ];
 
-    const handleDetail = (room) => {
-        console.log("Chi tiết phòng", room);
-        // Chuyển đến trang chi tiết / hoặc hiển thị modal
-    };
+    // const handleDetail = (room) => {
+    //     console.log("Chi tiết phòng", room);
+    // };
 
-    const handleDelete = async (room) => {
-        try {
-            await fetch(`/api/rooms/${room.id}`, {
-                method: 'DELETE',
-            });
-            message.success("Xoá thành công!");
-            fetchRooms();
-        } catch (err) {
-            message.error("Xoá thất bại!");
-        }
-    };
+    // const handleDelete = async (room) => {
+    //     try {
+    //         await fetch(`/api/rooms/${room.id}`, {
+    //             method: 'DELETE',
+    //         });
+    //         message.success("Xoá thành công!");
+    //         fetchRooms();
+    //     } catch (err) {
+    //         message.error("Xoá thất bại!");
+    //     }
+    // };
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
@@ -209,13 +204,13 @@ export default function RoomManagement() {
                             >
                                 Làm mới
                             </Button>
-                            <Button
+                            {/* <Button
                                 type="primary"
                                 icon={<PlusOutlined />}
                                 href="/admin/rooms/create"
                             >
                                 Thêm phòng
-                            </Button>
+                            </Button> */}
                         </Space>
                     </div>
 

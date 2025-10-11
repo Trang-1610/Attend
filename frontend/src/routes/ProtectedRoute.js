@@ -7,6 +7,19 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, initializing } = useAuth();
   const location = useLocation();
 
+  const publicRoutes = [
+    "/account/login",
+    "/account/signup",
+    "/account/verify-otp",
+    "/account/forgot-password",
+    "/account/otp-verify-reset-password",
+    "/account/entry-password",
+  ];
+
+  if (publicRoutes.some(route => location.pathname.startsWith(route))) {
+    return children;
+  }
+
   if (initializing || (allowedRoles && !user)) {
     return <Spin size="large" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }} />;
   }

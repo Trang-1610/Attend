@@ -104,6 +104,9 @@ export default function EventInfoForm({ reminderData, form, selectedSubject }) {
                     className="w-full"
                     style={{ borderWidth: 1.5, boxShadow: "none" }}
                     placeholder={[t("start date"), t("end date")]}
+                    disabledDate={(current) => {
+                        return current && current < dayjs().startOf("day");
+                    }}
                 />
             </Form.Item>
             <Form.Item 

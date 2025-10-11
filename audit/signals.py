@@ -9,7 +9,7 @@ from accounts.models import Account
 from decimal import Decimal
 from django.db.models import FileField
 from .utils import (
-    get_current_user, get_current_request, safe_model_to_dict, 
+    get_current_request, safe_model_to_dict, 
     get_location, get_device_and_location, get_device_info, send_login_email
 )
 from helper.get_client_ip import get_client_ip
@@ -26,6 +26,7 @@ import decimal
 import uuid
 from django.db.models.fields.files import FieldFile
 import logging
+from .middleware import get_current_user
 
 logger = logging.getLogger(__name__)
 _old_instance_cache = {}
@@ -42,35 +43,6 @@ def before_leave_request_update(sender, instance, **kwargs):
             _old_instance_cache[instance.pk] = safe_model_to_dict(old_instance)
         except LeaveRequest.DoesNotExist:
             _old_instance_cache[instance.pk] = {}
-
-# ==================================================
-# Write audit logs for LeaveRequest model when saved
-# ==================================================
-@receiver(post_save, sender=LeaveRequest)
-def after_leave_request_save(sender, instance, created, **kwargs):
-    old_data = {}
-    new_data = safe_model_to_dict(instance)
-
-    operation = "C" if created else "U"
-    if not created:
-        old_data = _old_instance_cache.pop(instance.pk, {})
-
-    user = get_current_user()
-    request = get_current_request()
-
-    AuditLog.objects.create(
-        operation=operation,
-        old_data=old_data,
-        new_data=new_data,
-        changed_by=user if user else Account.objects.first(),
-        ip_address=request.META.get("REMOTE_ADDR") if request else "unknown",
-        user_agent=request.META.get("HTTP_USER_AGENT") if request else "unknown",
-        record_id=str(instance.pk),
-        entity_id="leave_request",
-        entity_name="LeaveRequest",
-        action_description="Created leave request" if created else "Updated leave request",
-    )
-
 # ==================================================
 # Log successful login
 # ==================================================
@@ -156,46 +128,6 @@ def log_user_logout(sender, request, user, **kwargs):
     except Exception as e:
         logger.error(f"Failed to log user logout: {e}")
 # ==================================================
-# Write audit logs for Account model when created/updated Lecturer model when created/updated
-# ==================================================
-@receiver(post_save, sender=Account)
-def audit_account(sender, instance, created, **kwargs):
-    user, ip, ua = get_request_info()
-    if not user:
-        return
-    
-    AuditLog.objects.create(
-        operation=AuditLog.Operation.CREATE if created else AuditLog.Operation.UPDATE,
-        old_data={},
-        new_data=serialize_instance(instance, exclude_fields=["avatar"]),
-        changed_by=user,
-        ip_address=ip,
-        user_agent=ua,
-        record_id=str(instance.pk),
-        entity_id=str(instance.pk),
-        entity_name="Account",
-        action_description="Tạo tài khoản" if created else "Cập nhật tài khoản"
-    )
-
-@receiver(post_save, sender=Lecturer)
-def audit_lecturer(sender, instance, created, **kwargs):
-    user, ip, ua = get_request_info()
-    if not user:
-        return
-    
-    AuditLog.objects.create(
-        operation=AuditLog.Operation.CREATE if created else AuditLog.Operation.UPDATE,
-        old_data={}, 
-        new_data=serialize_instance(instance),
-        changed_by=user,
-        ip_address=ip,
-        user_agent=ua,
-        record_id=str(instance.pk),
-        entity_id=str(instance.pk),
-        entity_name="Lecturer",
-        action_description="Tạo hồ sơ giảng viên" if created else "Cập nhật hồ sơ giảng viên"
-    )
-# ==================================================
 # Get request metadata helper
 # ==================================================
 def get_request_meta():
@@ -207,74 +139,6 @@ def get_request_meta():
             "user_agent": request.META.get("HTTP_USER_AGENT", ""),
         }
     return {"user": None, "ip": "unknown", "user_agent": "unknown"}
-
-# ==================================================
-# Write audit logs for LecturerSubject and SubjectClass models
-# ==================================================
-@receiver(post_save, sender=LecturerSubject)
-def log_lecturer_subject_create(sender, instance, created, **kwargs):
-    if created:
-        meta = get_request_meta()
-        AuditLog.objects.create(
-            operation="C",
-            old_data={},
-            new_data={
-                "lecturer_id": instance.lecturer_id,
-                "subject_id": instance.subject_id,
-            },
-            ip_address=meta["ip"],
-            user_agent=meta["user_agent"],
-            changed_by=meta["user"],
-            record_id=str(instance.pk),
-            entity_id=str(instance.pk),
-            entity_name="LecturerSubject",
-            action_description="Tự động log: Gán môn học cho giảng viên",
-        )
-
-# ==================================================
-# Write audit logs for SubjectClass
-# ==================================================
-@receiver(post_save, sender=SubjectClass)
-def log_subject_class_create(sender, instance, created, **kwargs):
-    if created:
-        meta = get_request_meta()
-        AuditLog.objects.create(
-            operation="C",
-            old_data={},
-            new_data={
-                "subject_id": instance.subject_id,
-                "class_id": instance.class_id_id,
-                "lecturer_id": instance.lecturer_id,
-                "semester_id": instance.semester_id,
-            },
-            ip_address=meta["ip"],
-            user_agent=meta["user_agent"],
-            changed_by=meta["user"],
-            record_id=str(instance.pk),
-            entity_id=str(instance.pk),
-            entity_name="SubjectClass",
-            action_description="Tự động log: Gán lớp học cho giảng viên",
-        )
-# ==================================================
-# Create log when reminder is created
-# ==================================================
-@receiver(post_save, sender=Reminder)
-def create_audit_log_for_reminder(sender, instance, created, **kwargs):
-    if created:
-        AuditLog.objects.create(
-            operation=AuditLog.Operation.CREATE,
-            new_data={
-                "title": instance.title,
-                "content": instance.content,
-                "student": instance.student_id,
-                "subject": instance.subject_id,
-            },
-            entity_id=str(instance.reminder_id),
-            entity_name="Reminder",
-            module_name="notifications",
-            action_description=f"Tạo nhắc nhở: {instance.title}",
-            changed_by=instance.student.account if hasattr(instance.student, "account") else None
-        )
 # ==================================================
 # Create log for all model, including create, update and delete
 # ==================================================

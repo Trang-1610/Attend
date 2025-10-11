@@ -106,7 +106,6 @@ export default function SubjectAssignment() {
                                         String(option?.children).toLowerCase().includes(input.toLowerCase())
                                     }
                                     className='w-full custom-select'
-                                    size='large'
                                 >
                                     {lecturers.map(lecturer => (
                                         <Option key={lecturer.lecturer_id} value={lecturer.lecturer_id}>
@@ -149,7 +148,6 @@ export default function SubjectAssignment() {
                                             String(option?.children).toLowerCase().includes(input.toLowerCase())
                                         }
                                         className='w-full custom-select'
-                                        size='large'
                                     >
                                         {academicYears.map(year => (
                                             <Option key={year.academic_year_id} value={year.academic_year_id}>
@@ -178,7 +176,6 @@ export default function SubjectAssignment() {
                                             String(option?.children).toLowerCase().includes(input.toLowerCase())
                                         }
                                         className='w-full custom-select'
-                                        size='large'
                                     >
                                         {semesters
                                             .filter(sem => sem.academic_year === selectedYear)
@@ -205,7 +202,6 @@ export default function SubjectAssignment() {
                                             String(option?.children).toLowerCase().includes(input.toLowerCase())
                                         }
                                         className='w-full custom-select'
-                                        size='large'
                                     >
                                         {filteredClasses
                                             .filter(cls => cls.academic_year?.academic_year_id === selectedYear)
@@ -231,7 +227,6 @@ export default function SubjectAssignment() {
                                         String(option?.children).toLowerCase().includes(input.toLowerCase())
                                     }
                                     className='w-full custom-select'
-                                    size='large'
                                 >
                                     {filteredSubjects
                                         .filter(sub => sub.academic_year?.academic_year_id === selectedYear && sub.department.department_id === selectedLecturer.department.department_id)
@@ -245,7 +240,7 @@ export default function SubjectAssignment() {
                         </Card>
 
                         <Form.Item className="mt-4">
-                            <Button type="primary" htmlType="submit" loading={loading} size='large'>Gán giảng viên</Button>
+                            <Button type="primary" htmlType="submit" loading={loading} >Gán giảng viên</Button>
                         </Form.Item>
                     </Form>
                 </main>

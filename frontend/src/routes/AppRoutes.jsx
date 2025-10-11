@@ -11,7 +11,6 @@ import Term from "../pages/terms/Term";
 import AddReminder from "../pages/add-event/AddReminder";
 import AddRequestLeave from "../pages/add-event/AddRequestLeave";
 import AddRequest from "../pages/add-event/AddRequest";
-import ChangePassword from "../pages/account/ChangePassword"; //
 import AccountInformation from "../pages/account/AccountInformation"; //
 import GeneralSetting from "../pages/general-setting/GeneralSetting";
 import AdminDashboard from "../pages/admin/Dashboard"; //
@@ -55,8 +54,10 @@ import ClassAssignment from "../pages/admin/students/ClassAssignment";
 import SubjectAssignment from "../pages/admin/lecturers/SubjectAssignment";
 import LecturerList from "../pages/admin/lecturers/LecturerList";
 import AdminSchedule from "../pages/admin/Schedule";
+import Audit from "../pages/admin/Audit";
 
 import Error403 from "../components/403";
+import WaitingPage from "../components/Waiting";
 
 const AppRoutes = () => {
     return (
@@ -73,7 +74,6 @@ const AppRoutes = () => {
             <Route path="/add-event/add-reminder" element={<ProtectedRoute allowedRoles={["student"]}><AddReminder /></ProtectedRoute>} />
             <Route path="/add-event/request-leave" element={<ProtectedRoute allowedRoles={["student"]}><AddRequestLeave /></ProtectedRoute>} />
             <Route path="/add-event/request-leave/request" element={<ProtectedRoute allowedRoles={["student"]}><AddRequest /></ProtectedRoute>} />
-            <Route path="/account/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             <Route path="/general-setting" element={<ProtectedRoute allowedRoles={["student"]}><GeneralSetting /></ProtectedRoute>} />
             <Route path="/account/information/update/*" element={<ProtectedRoute allowedRoles={["student"]}><AccountInformation /></ProtectedRoute>} />
             <Route path="/attendance/statistics" element={<ProtectedRoute allowedRoles={["student"]}><AttendanceStatistics /></ProtectedRoute>} />
@@ -88,6 +88,8 @@ const AppRoutes = () => {
 
             <Route path="/forbidden/pages/403" element={<Error403 />} />
             <Route path="*" element={<ErrorPage />} />
+
+            <Route path="/waiting" element={<ProtectedRoute allowedRoles={["student"]}><WaitingPage /></ProtectedRoute>} />
 
             {/* Admin */}
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
@@ -120,6 +122,8 @@ const AppRoutes = () => {
             <Route path="/admin/lecturers/assign-class" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><SubjectAssignment /></ProtectedRoute>} />
             <Route path="/admin/lecturers/list" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><LecturerList /></ProtectedRoute>} />
             <Route path="/admin/schedule" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><AdminSchedule /></ProtectedRoute>} />
+
+            <Route path="/admin/management/log" element={<ProtectedRoute allowedRoles={["admin", "superadmin"]}><Audit /></ProtectedRoute>} />
             
         </Routes>
     );

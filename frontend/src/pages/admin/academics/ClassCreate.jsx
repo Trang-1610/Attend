@@ -79,7 +79,7 @@ export default function ClassCreate() {
 
                 <main className="mx-4 my-4 p-4 sm:p-6 bg-white rounded shadow">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-                        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} className="w-[150px]">
+                        <Button type='link' icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} className="w-[150px]">
                             Quay lại
                         </Button>
                         <Title level={3} className="!mb-0 text-xl sm:text-2xl">Thêm lớp học mới</Title>
@@ -98,7 +98,7 @@ export default function ClassCreate() {
                                 name="class_name"
                                 rules={[{ required: true, message: 'Vui lòng nhập tên lớp.' }]}
                             >
-                                <Input placeholder="VD: CNTTKTMT2425587" />
+                                <Input placeholder="VD: CNTTKTMT2425587" style={{ borderWidth: 1.5, boxShadow: "none" }} />
                             </Form.Item>
 
                             <Form.Item
@@ -106,7 +106,7 @@ export default function ClassCreate() {
                                 name="department"
                                 rules={[{ required: true, message: 'Vui lòng chọn khoa.' }]}
                             >
-                                <Select placeholder="Chọn khoa">
+                                <Select placeholder="Chọn khoa" className='w-full custom-select'>
                                     {departments.map((dept) => (
                                         <Option key={dept.department_id} value={dept.department_id}>
                                             {dept.department_name}
@@ -120,7 +120,7 @@ export default function ClassCreate() {
                                 name="academic_year"
                                 rules={[{ required: true, message: 'Vui lòng chọn năm học.' }]}
                             >
-                                <Select placeholder="Chọn năm học">
+                                <Select placeholder="Chọn năm học" className='w-full custom-select'>
                                     {academicYears.map((year) => (
                                         <Option key={year.academic_year_id} value={year.academic_year_id}>
                                             {year.academic_year_name}

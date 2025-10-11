@@ -1,24 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Avatar, Badge, Dropdown, Popover, Input, Drawer, Button, message } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Avatar, Badge, Dropdown, Popover, Input, Drawer, Button, message, Modal } from 'antd';
 import {
     BellOutlined,
     LogoutOutlined,
-    SettingOutlined,
     UserOutlined,
     MenuOutlined,
     SearchOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import api from '../../api/axiosInstance';
+import { useNavigate } from 'react-router-dom';
 
-const Navbar = ({ changeLanguage, searchValue, setSearchValue }) => {
+const Navbar = ({ changeLanguage }) => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [openDrawer, setOpenDrawer] = useState(false);
     const [user, setUser] = useState(null);
     const [notifications, setNotifications] = useState([]);
 
+    const [data,] = useState([]);
+    const [searchValue, setSearchValue] = useState("");
+
+    const [, setFilteredData] = useState([]);
+
     useEffect(() => {
-        let intervalId;
+        let socket;
 
         const fetchUserAndNotifications = async () => {
             try {
@@ -26,7 +32,34 @@ const Navbar = ({ changeLanguage, searchValue, setSearchValue }) => {
                 setUser(res.data);
 
                 if (res.data?.account_id) {
-                    fetchNotifications(res.data.account_id);
+                    await fetchNotifications(res.data.account_id);
+
+                    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+                    socket = new WebSocket(`${wsScheme}://127.0.0.1:8000/ws/notifications/${res.data.account_id}/`);
+
+                    socket.onopen = () => {
+                        console.log("WebSocket connected to notifications");
+                    };
+
+                    socket.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            console.log("🔔 New notification:", data);
+
+                            setNotifications((prev) => [data, ...prev]);
+                            message.info(`${data.title}`);
+                        } catch (err) {
+                            console.error("WS parse error:", err);
+                        }
+                    };
+
+                    socket.onclose = () => {
+                        console.log("WebSocket disconnected");
+                    };
+
+                    socket.onerror = (err) => {
+                        console.error("WebSocket error:", err);
+                    };
                 }
             } catch (err) {
                 setUser(null);
@@ -35,14 +68,12 @@ const Navbar = ({ changeLanguage, searchValue, setSearchValue }) => {
 
         fetchUserAndNotifications();
 
-        intervalId = setInterval(() => {
-            if (user?.account_id) {
-                fetchNotifications(user.account_id);
+        return () => {
+            if (socket) {
+                socket.close();
             }
-        }, 1000);
-
-        return () => clearInterval(intervalId);
-    }, [user?.account_id]);
+        };
+    }, []);
 
     const fetchNotifications = async (accountId) => {
         try {
@@ -53,6 +84,75 @@ const Navbar = ({ changeLanguage, searchValue, setSearchValue }) => {
             setNotifications([]);
         }
     };
+
+    const removeHighlights = useCallback(() => {
+        document.querySelectorAll('mark').forEach(el => {
+            const parent = el.parentNode;
+            parent.replaceChild(document.createTextNode(el.textContent), el);
+            parent.normalize();
+        });
+    }, []);
+
+    const highlightText = useCallback((term) => {
+        removeHighlights();
+
+        if (!term) return;
+
+        const regex = new RegExp(`(${term})`, 'gi');
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        const nodes = [];
+
+        while (walker.nextNode()) {
+            nodes.push(walker.currentNode);
+        }
+
+        nodes.forEach(node => {
+            if (node.parentNode && !["SCRIPT", "STYLE"].includes(node.parentNode.nodeName)) {
+                const text = node.nodeValue;
+                if (regex.test(text)) {
+                    const span = document.createElement('span');
+                    span.innerHTML = text.replace(regex, `<mark style="background: #ffeb3b; color: black;">$1</mark>`);
+                    node.parentNode.replaceChild(span, node);
+                }
+            }
+        });
+    }, [removeHighlights]);
+
+    const handleLogout = () => {
+        Modal.confirm({
+            title: "Xác nhận đăng xuất",
+            content: "Bạn có chắc chắn muốn đăng xuất không?",
+            okText: "Đăng xuất",
+            cancelText: "Hủy",
+            okButtonProps: { danger: true },
+            onOk: async () => {
+                try {
+                    await api.post("/accounts/logout/", {}, { withCredentials: true });
+                    message.success("Đăng xuất thành công");
+                    localStorage.removeItem("accessToken");
+                    navigate("/account/login");
+                } catch (err) {
+                    message.error("Có lỗi khi đăng xuất");
+                }
+            },
+        });
+    };
+
+    useEffect(() => {
+        if (!searchValue?.trim()) {
+            setFilteredData(data);
+            return;
+        }
+
+        const lower = searchValue.toLowerCase();
+        const result = data.filter(item =>
+            Object.values(item).some(val =>
+                String(val).toLowerCase().includes(lower)
+            )
+        );
+        setFilteredData(result);
+        highlightText(searchValue);
+    }, [searchValue, data, highlightText]);
 
     const notificationContent = (
         <div className="max-w-xs">
@@ -77,47 +177,16 @@ const Navbar = ({ changeLanguage, searchValue, setSearchValue }) => {
         </div>
     );
 
-    const settingMenuItems = [
-        {
-            key: 'system',
-            label: <a href="/admin/settings/system">Hệ thống</a>,
-            icon: <SettingOutlined />,
-        },
-        {
-            key: 'security',
-            label: <a href="/admin/settings/security">Bảo mật</a>,
-            icon: <UserOutlined />,
-        },
-        {
-            type: 'group',
-            label: 'Ngôn ngữ',
-            children: [
-                {
-                    key: 'lang_vi',
-                    label: 'Tiếng Việt',
-                    icon: <span role="img">🇻🇳</span>,
-                    onClick: () => changeLanguage('vi'),
-                },
-                {
-                    key: 'lang_en',
-                    label: 'English',
-                    icon: <span role="img">🇺🇸</span>,
-                    onClick: () => changeLanguage('en'),
-                },
-            ],
-        },
-    ];
-
     const userMenuItems = [
         {
-            key: 'profile',
-            label: <a href="/admin/account/profile">Profile</a>,
+            key: 'changePassword',
+            label: <a href="/account/forgot-password/" target='_blank' rel="noopener noreferrer">Đổi mật khẩu</a>,
             icon: <UserOutlined />,
         },
         {
             key: 'logout',
-            label: <a href="/admin/account/logout">Đăng xuất</a>,
-            icon: <LogoutOutlined />,
+            label: <span className='text-red-500' onClick={handleLogout}>Đăng xuất</span>,
+            icon: <LogoutOutlined className='text-red-500' />,
         },
     ];
 
@@ -134,10 +203,6 @@ const Navbar = ({ changeLanguage, searchValue, setSearchValue }) => {
                     className="rounded-md w-full"
                     style={{ borderWidth: 1.5, boxShadow: 'none' }}
                 />
-
-                <Dropdown trigger={['hover']} placement="bottomRight" menu={{ items: settingMenuItems }}>
-                    <SettingOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
-                </Dropdown>
 
                 <Popover
                     content={notificationContent}
@@ -174,21 +239,16 @@ const Navbar = ({ changeLanguage, searchValue, setSearchValue }) => {
                 open={openDrawer}
             >
                 <Input
-                    placeholder={t('Search lecturer...')}
+                    placeholder={t('Search ...')}
                     prefix={<SearchOutlined />}
-                    value={searchValue}
-                    onChange={e => setSearchValue(e.target.value)}
                     allowClear
                     size="middle"
                     className="mb-4"
                 />
 
                 <div className="flex flex-col gap-4">
-                    <Dropdown menu={{ items: settingMenuItems }} trigger={['click']}>
-                        <Button icon={<SettingOutlined />} block>Settings</Button>
-                    </Dropdown>
 
-                    <Popover content={notificationContent} title={t('Notifications')} trigger="click"> 
+                    <Popover content={notificationContent} title={t('Notifications')} trigger="click">
                         <Button icon={<BellOutlined />} block>Notifications</Button>
                     </Popover>
 

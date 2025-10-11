@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     AttendanceSummaryView, AttendanceHistoryView, AttendanceStatisticView, AttendanceStatisticTotalView,
-    AttendanceStatisticByDepartmentView
+    AttendanceStatisticByDepartmentView, AttendanceStatisticByDateCurrentSemesterView, AttendanceStatisticByClassView
 )
 
 urlpatterns = [
@@ -15,5 +15,17 @@ urlpatterns = [
         "admin/attendance-statistics-by-department/<int:semester_id>/<int:academic_year_id>/",
         AttendanceStatisticByDepartmentView.as_view(),
         name="attendance-statistics-by-department",
+    ),
+    # Calculate the total of attendance by date
+    path(
+        "admin/attendance-statistics-by-date-current-semester/",
+        AttendanceStatisticByDateCurrentSemesterView.as_view(),
+        name="attendance-statistics-by-date-current-semester",
+    ),
+    # Calculate the total of attendance by class
+    path(
+        "admin/attendance-statistics-by-class/",
+        AttendanceStatisticByClassView.as_view(),
+        name="attendance-statistics-by-class",
     ),
 ]

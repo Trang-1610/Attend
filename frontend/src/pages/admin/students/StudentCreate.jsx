@@ -104,7 +104,7 @@ export default function StudentCreate() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                             <Form.Item label="Họ và tên" name="fullname" rules={[{ required: true }]}>
-                                <Input placeholder="Nhập họ và tên" size='large' style={{ borderWidth: 1.5, boxShadow: 'none' }} />
+                                <Input placeholder="Nhập họ và tên" style={{ borderWidth: 1.5, boxShadow: 'none' }} />
                             </Form.Item>
 
                             <Form.Item
@@ -117,11 +117,11 @@ export default function StudentCreate() {
                                         message: 'Số điện thoại không hợp lệ!'
                                     }
                                 ]}>
-                                <Input placeholder="Nhập số điện thoại" minLength={10} maxLength={10} size='large' style={{ borderWidth: 1.5, boxShadow: 'none' }} />
+                                <Input placeholder="Nhập số điện thoại" minLength={10} maxLength={10} style={{ borderWidth: 1.5, boxShadow: 'none' }} />
                             </Form.Item>
 
                             <Form.Item label="Email" name="email" rules={[{ type: 'email' }, { required: true }]}>
-                                <Input placeholder="Nhập email" size='large' style={{ borderWidth: 1.5, boxShadow: 'none' }} />
+                                <Input placeholder="Nhập email" style={{ borderWidth: 1.5, boxShadow: 'none' }} />
                             </Form.Item>
 
                             <Form.Item
@@ -132,33 +132,37 @@ export default function StudentCreate() {
                                     { min: 8, message: 'Mật khẩu phải có ít nhất 8 ký tự' }
                                 ]}
                             >
-                                <Input.Password
-                                    value={password}
-                                    onChange={(e) => {
-                                        setPassword(e.target.value);
-                                        form.setFieldsValue({ password: e.target.value });
-                                    }}
-                                    placeholder="Nhập hoặc tạo mật khẩu"
-                                    addonAfter={
-                                        <Button
-                                            type="link"
-                                            style={{ padding: '0 8px', height: '100%' }}
-                                            onClick={() => {
-                                                const newPassword = generatePassword();
-                                                setPassword(newPassword);
-                                                form.setFieldsValue({ password: newPassword });
-                                            }}
-                                        >
-                                            Tạo
-                                        </Button>
-                                    }
-                                    size='large'
-                                    style={{ boxShadow: 'none' }}
-                                />
+                                <div className="flex items-center gap-2">
+                                    <Input.Password
+                                        value={password}
+                                        onChange={(e) => {
+                                            setPassword(e.target.value);
+                                            form.setFieldsValue({ password: e.target.value });
+                                        }}
+                                        placeholder="Nhập hoặc tạo mật khẩu"
+                                        className="flex-1"
+                                        style={{
+                                            borderWidth: 1.5,
+                                            boxShadow: 'none',
+                                        }}
+                                    />
+
+                                    <Button
+                                        type="primary"
+                                        onClick={() => {
+                                            const newPassword = generatePassword();
+                                            setPassword(newPassword);
+                                            form.setFieldsValue({ password: newPassword });
+                                        }}
+                                        className="whitespace-nowrap"
+                                    >
+                                        Tạo
+                                    </Button>
+                                </div>
                             </Form.Item>
 
                             <Form.Item label="Giới tính" name="gender" rules={[{ required: true }]}>
-                                <Select placeholder="Chọn giới tính" size='large' className='w-full custom-select'>
+                                <Select placeholder="Chọn giới tính" className='w-full custom-select'>
                                     <Option value="1">Nam</Option>
                                     <Option value="2">Nữ</Option>
                                 </Select>
@@ -184,11 +188,11 @@ export default function StudentCreate() {
                                         },
                                     }),
                                 ]}>
-                                <DatePicker format="YYYY-MM-DD" size='large' style={{ width: '100%', borderWidth: 1.5, boxShadow: 'none' }} />
+                                <DatePicker format="YYYY-MM-DD" style={{ width: '100%', borderWidth: 1.5, boxShadow: 'none' }} />
                             </Form.Item>
 
                             <Form.Item label="Trạng thái" name="status" rules={[{ required: true }]}>
-                                <Select placeholder="Chọn trạng thái" size='large' className='w-full custom-select'>
+                                <Select placeholder="Chọn trạng thái" className='w-full custom-select'>
                                     <Option value="1">Đang học</Option>
                                 </Select>
                             </Form.Item>
@@ -200,7 +204,7 @@ export default function StudentCreate() {
                                         form.setFieldsValue({ major_id: null });
                                         setSelectedDepartmentId(value);
                                     }}
-                                    size='large' className='w-full custom-select'
+                                    className='w-full custom-select'
                                 >
                                     {departments.map(dep => (
                                         <Option key={dep.department_id} value={dep.department_id}>
@@ -211,7 +215,7 @@ export default function StudentCreate() {
                             </Form.Item>
 
                             <Form.Item label="Chuyên ngành" name="major_id" rules={[{ required: true }]}>
-                                <Select placeholder="Chọn chuyên ngành" disabled={!selectedDepartmentId} size='large' className='w-full custom-select'>
+                                <Select placeholder="Chọn chuyên ngành" disabled={!selectedDepartmentId} className='w-full custom-select'>
                                     {filteredMajors.length > 0 ? (
                                         filteredMajors.map(major => (
                                             <Option key={major.major_id} value={major.major_id}>
@@ -229,7 +233,7 @@ export default function StudentCreate() {
                             </Form.Item>
                         </div>
                         <Form.Item>
-                            <Button type="primary" size='large' htmlType="submit" loading={loading}>Thêm sinh viên</Button>
+                            <Button type="primary" htmlType="submit" loading={loading}>Thêm sinh viên</Button>
                         </Form.Item>
                     </Form>
                 </main>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Table, Button, Space, message, Modal, Descriptions, Tag, Select, Form, Tooltip } from 'antd';
 import {
     SearchOutlined,
-    PlusOutlined,
+    // PlusOutlined,
     ReloadOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -24,16 +24,16 @@ export default function ClassManagement() {
 
     const [loading, setLoading] = useState(false);
     const [classes, setClasses] = useState([]);
-    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    // const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedClass, setSelectedClass] = useState(null);
+    const [selectedClass, ] = useState(null); // setSelectedClass
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [, setEditForm] = useState({
-        class_name: '',
-        academic_year: '',
-        department: ''
-    });
+    // const [, setEditForm] = useState({
+    //     class_name: '',
+    //     academic_year: '',
+    //     department: ''
+    // });
     const [academicYears, setAcademicYears] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [form] = Form.useForm();
@@ -221,33 +221,33 @@ export default function ClassManagement() {
                 }
             }
         },        
-        {
-            title: 'Thao tác',
-            key: 'actions',
-            render: (_, record) => (
-                <Space>
-                    {/* <Button size="small" onClick={() => handleDetail(record)}>Chi tiết</Button> */}
-                    <Button type='primary' size="small" onClick={() => handleEdit(record)}>Cập nhật</Button>
-                </Space>
-            ),
-        },
+        // {
+        //     title: 'Thao tác',
+        //     key: 'actions',
+        //     render: (_, record) => (
+        //         <Space>
+        //             <Button size="small" onClick={() => handleDetail(record)}>Chi tiết</Button>
+        //             <Button type='primary' size="small" onClick={() => handleEdit(record)}>Cập nhật</Button>
+        //         </Space>
+        //     ),
+        // },
     ];
 
-    const handleEdit = (record) => {
-        setSelectedClass(record);
+    // const handleEdit = (record) => {
+    //     setSelectedClass(record);
     
-        const updatedForm = {
-            class_name: record.class_name,
-            academic_year: record.academic_year?.academic_year_code || '',
-            department: record.department?.department_code || '',
-            status: record.status || '1',
-        };
+    //     const updatedForm = {
+    //         class_name: record.class_name,
+    //         academic_year: record.academic_year?.academic_year_code || '',
+    //         department: record.department?.department_code || '',
+    //         status: record.status || '1',
+    //     };
     
-        setEditForm(updatedForm);
-        form.setFieldsValue(updatedForm);
+    //     setEditForm(updatedForm);
+    //     form.setFieldsValue(updatedForm);
     
-        setIsEditModalOpen(true);
-    };    
+    //     setIsEditModalOpen(true);
+    // };    
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
@@ -268,13 +268,13 @@ export default function ClassManagement() {
                             >
                                 Làm mới
                             </Button>
-                            <Button
+                            {/* <Button
                                 type="primary"
                                 icon={<PlusOutlined />}
                                 href="/admin/academics/classes/create"
                             >
                                 Thêm lớp học
-                            </Button>
+                            </Button> */}
                         </Space>
                     </div>
 
@@ -283,10 +283,10 @@ export default function ClassManagement() {
                         columns={columns}
                         dataSource={classes}
                         loading={loading}
-                        rowSelection={{
-                            selectedRowKeys,
-                            onChange: setSelectedRowKeys
-                        }}
+                        // rowSelection={{
+                        //     selectedRowKeys,
+                        //     onChange: setSelectedRowKeys
+                        // }}
                         pagination={{ pageSize: 10 }}
                         bordered
                         scroll={{ x: 'max-content' }}
@@ -373,8 +373,8 @@ export default function ClassManagement() {
                                     }
                                 >
                                     {academicYears.map((y) => (
-                                        <Option key={y.academic_year_code} value={y.academic_year_code}>
-                                            {y.academic_year_name}
+                                        <Option key={y?.academic_year_name} value={y?.academic_year_code}>
+                                            {y?.academic_year_name}
                                         </Option>
                                     ))}
                                 </Select>

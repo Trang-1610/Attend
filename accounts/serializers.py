@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from accounts.models import Account, Role
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.core.mail import send_mail
 from accounts.models import Account 
 from django.template.loader import render_to_string
@@ -10,6 +9,10 @@ import hashlib, secrets
 from django.utils import timezone
 from datetime import timedelta
 from django.utils.crypto import get_random_string
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+import re
+from django.contrib.auth.models import Group
 
 OTP_STORE = {}
 
@@ -102,8 +105,11 @@ class LoginSerializer(serializers.Serializer):
                 "Tài khoản của bạn bị khoá. Vui lòng liên hệ với quản trị hệ thống."
             )
 
+        if not account.is_active:
+            raise serializers.ValidationError("Tài khoản của các bản khóa. Vui lòng liên hệ với quản trị hệ thống.")
+
         if not account.check_password(password):
-            raise serializers.ValidationError("Vui lòng kiểm tra lại thông tin")
+            raise serializers.ValidationError("Lỗi mật khẩu hoặc số điện thoại. Vui lòng kiểm tra lại thông tin")
 
         data['user'] = account
         return data
@@ -113,7 +119,7 @@ class LoginSerializer(serializers.Serializer):
 class AccountListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['account_id', 'email', 'is_active', 'phone_number', 'is_locked', 'user_type']
+        fields = ['account_id', 'email', 'phone_number', 'is_locked', 'is_active']
 # ==================================================
 # Account Reset Password Student
 # ==================================================
@@ -399,3 +405,64 @@ class ResetPasswordForChangePassword(serializers.Serializer):
         user.save()
 
         return {"success": True, "message": "Mật khẩu đã được đặt lại thành công."}
+# ==================================================
+# ADMIN: Update account (phone_number, email)
+# ==================================================
+class AdminUpdateAccountSerializer(serializers.ModelSerializer):
+    phone_number = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+    is_active = serializers.BooleanField(required=True)
+
+    class Meta:
+        model = Account
+        fields = ["phone_number", "email", "is_active"]
+
+    def validate_phone_number(self, value):
+        """
+        Check if phone number is valid
+        """
+        pattern = re.compile(
+            r"^(096|097|086|098|039|038|037|036|035|034|033|032|083|084|085|081|088|082|091|094|070|076|077|078|079|089|090|093|092|056|058|099|059|087)\d{7}$"
+        )
+        if not pattern.match(value):
+            raise serializers.ValidationError("Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng.")
+        return value
+# ==================================================
+# ADMIN: Created account (phone_number, email, password, is_active, user_type)
+# ==================================================
+class AccountCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, min_length=8)
+    user_type = serializers.ChoiceField(choices=Account.UserType.choices, required=True)
+
+    class Meta:
+        model = Account
+        fields = [
+            "email",
+            "phone_number",
+            "is_active",
+            "user_type",
+            "password",
+        ]
+
+    def validate_email(self, value):
+        if Account.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email này đã tồn tại.")
+        return value
+
+    def validate_phone_number(self, value):
+        if Account.objects.filter(phone_number=value).exists():
+            raise serializers.ValidationError("Số điện thoại này đã tồn tại.")
+        return value
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = Account.objects.create_user(**validated_data)
+        user.set_password(password)
+        user.save()
+
+        role_name = validated_data.get("user_type")
+        if role_name:
+            group, _ = Group.objects.get_or_create(name=role_name)
+            user.groups.add(group)
+
+        return user

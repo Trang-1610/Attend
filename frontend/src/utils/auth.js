@@ -9,6 +9,8 @@ export const logout = () => {
         const currentPath = window.location.pathname + window.location.search;
         const loginUrl = `/account/login?next=${encodeURIComponent(currentPath)}`;
 
+        delete api.defaults.headers.common['Authorization'];
+
         window.location.replace(loginUrl);
     });
 };

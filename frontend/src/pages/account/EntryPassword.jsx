@@ -95,9 +95,9 @@ const EntryPassword = () => {
                             rules={[
                                 { required: true, message: "Vui lòng nhập mật khẩu mới!" },
                                 {
-                                    pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+                                    pattern: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d])[A-Za-z\d\S]{8,}$/,
                                     message:
-                                        "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ cái và số!",
+                                        "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ cái, số và ký tự đặc biệt!",
                                 },
                             ]}
                         >

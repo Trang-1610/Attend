@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Table, Button, Space, message, Tag, Tooltip, Modal, Form, Select } from 'antd';
 import {
     SearchOutlined,
-    PlusOutlined,
+    // PlusOutlined,
     ReloadOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +26,7 @@ export default function MajorManagement() {
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [selectedMajor, setSelectedMajor] = useState(null);
+    const [selectedMajor, ] = useState(null); // setSelectedMajor
 
     const [departments, setDepartments] = useState([]);
 
@@ -154,26 +154,26 @@ export default function MajorManagement() {
                 );
             }
         },
-        {
-            title: 'Hành động',
-            key: 'actions',
-            render: (_, record) => (
-                <Space>
-                    <Button type='primary' size="small" onClick={() => handleEdit(record)} >Cập nhật</Button>
-                </Space>
-            ),
-        },
+        // {
+        //     title: 'Hành động',
+        //     key: 'actions',
+        //     render: (_, record) => (
+        //         <Space>
+        //             <Button type='primary' size="small" onClick={() => handleEdit(record)} >Cập nhật</Button>
+        //         </Space>
+        //     ),
+        // },
     ];
 
-    const handleEdit = (major) => {
-        setSelectedMajor(major);
-        setIsModalVisible(true);
-        form.setFieldsValue({
-            major_code: major.major_code,
-            major_name: major.major_name,
-            department: major.department?.department_id,
-        });
-    };
+    // const handleEdit = (major) => {
+    //     setSelectedMajor(major);
+    //     setIsModalVisible(true);
+    //     form.setFieldsValue({
+    //         major_code: major.major_code,
+    //         major_name: major.major_name,
+    //         department: major.department?.department_id,
+    //     });
+    // };
 
     const handleSubmit = async (values) => {
         try {
@@ -208,13 +208,13 @@ export default function MajorManagement() {
                             >
                                 Làm mới
                             </Button>
-                            <Button
+                            {/* <Button
                                 type="primary"
                                 icon={<PlusOutlined />}
                                 href="/admin/majors/create"
                             >
                                 Thêm ngành
-                            </Button>
+                            </Button> */}
                         </Space>
                     </div>
 

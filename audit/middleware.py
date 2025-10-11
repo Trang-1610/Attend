@@ -21,3 +21,15 @@ class AuditLogMiddleware:
         response = self.get_response(request)
         clear_current_request()
         return response
+def get_current_user():
+    """
+    Safe getter for current authenticated user.
+    Returns None if outside of request context.
+    """
+    request = get_current_request()
+    try:
+        if request and getattr(request, "user", None) and request.user.is_authenticated:
+            return request.user
+    except Exception:
+        pass
+    return None

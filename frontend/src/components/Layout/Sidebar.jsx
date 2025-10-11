@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Modal, message } from 'antd';
 import {
   DashboardOutlined,
   TeamOutlined,
-  TagsOutlined,
+  // TagsOutlined,
   SolutionOutlined,
   BellOutlined,
   CalendarOutlined,
@@ -14,12 +14,14 @@ import {
   LogoutOutlined
 } from '@ant-design/icons';
 import LogoFaceId from '../../assets/general/face-recognition.png';
+import api from '../../api/axiosInstance';
+import { useNavigate } from 'react-router-dom';
 
 const { Sider } = Layout;
 
 const Sidebar = ({ collapsed, setCollapsed, t }) => {
   const [selectedKey, setSelectedKey] = useState('1');
-
+  const navigate = useNavigate();
   useEffect(() => {
     const path = window.location.pathname;
 
@@ -54,13 +56,32 @@ const Sidebar = ({ collapsed, setCollapsed, t }) => {
     else if (path.startsWith('/admin/academics/subjects')) setSelectedKey('8-5');
     else if (path.startsWith('/admin/academics/rooms')) setSelectedKey('8-6');
 
-    else if (path.startsWith('/admin/management/attendance/schedule')) setSelectedKey('9-1');
-    else if (path.startsWith('/admin/management/attendance/attendance')) setSelectedKey('9-2');
-    else if (path.startsWith('/admin/management/attendance/leave-requests')) setSelectedKey('9-3');
+    // else if (path.startsWith('/admin/management/attendance/schedule')) setSelectedKey('9-1');
+    // else if (path.startsWith('/admin/management/attendance/attendance')) setSelectedKey('9-2');
+    // else if (path.startsWith('/admin/management/attendance/leave-requests')) setSelectedKey('9-3');
     else if (path.startsWith('/admin/management/log')) setSelectedKey('10');
     else if (path.startsWith('/admin/logout')) setSelectedKey('11');
     else setSelectedKey('');
   }, []);
+
+  const handleLogout = () => {
+    Modal.confirm({
+      title: "Xác nhận đăng xuất",
+      content: "Bạn có chắc chắn muốn đăng xuất không?",
+      okText: "Đăng xuất",
+      cancelText: "Hủy",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await api.post("/accounts/logout/", {}, { withCredentials: true });
+          message.success("Đăng xuất thành công");
+          navigate("/account/login");
+        } catch (err) {
+          message.error("Có lỗi khi đăng xuất");
+        }
+      },
+    });
+  };
   
   return (
     <Sider
@@ -126,8 +147,8 @@ const Sidebar = ({ collapsed, setCollapsed, t }) => {
             label: 'Quản lý tài khoản',
             children: [
               { key: '5-1', label: (<a href='/admin/management/account'><i className="fa-regular fa-address-book me-2"></i> Người dùng</a>) },
-              { key: '5-2', label: (<a href='/admin/management/role'><i className="fa-brands fa-square-font-awesome-stroke me-2"></i> Vai trò</a>) },
-              { key: '5-3', label: (<a href='/admin/management/permission'><i className="fa-solid fa-drum me-2"></i> Phân quyền</a>) },
+              { key: '5-2', label: (<a href='http://127.0.0.1:8000/admin/' target='_blank' rel="noopener noreferrer"><i className="fa-brands fa-square-font-awesome-stroke me-2"></i> Vai trò và phân quyền</a>) },
+              // { key: '5-3', label: (<a href='/admin/management/permission'><i className="fa-solid fa-drum me-2"></i> Phân quyền</a>) },
             ],
           },
           {
@@ -141,10 +162,10 @@ const Sidebar = ({ collapsed, setCollapsed, t }) => {
             label: 'Quản lý sinh viên',
             children: [
               { key: '6-1', label: (<a href='/admin/students/list'><i className="fa-solid fa-list me-2"></i> Danh sách sinh viên</a>) },
-              { key: '6-2', label: (<a href='/admin/students/assign-class'><i className="fa-brands fa-atlassian me-2"></i> Gán lớp học</a>) },
-              { key: '6-3', label: (<a href='/admin/students/assign-subject'><i className="fa-regular fa-font-awesome me-2"></i> Gán môn học</a>) },
-              { key: '6-4', label: (<a href='/admin/students/device'><i className="fa-regular fa-hard-drive me-2"></i> Thiết bị điểm danh</a>) },
-              { key: '6-5', label: (<a href='/admin/students/approve/list'><i className="fa-regular fa-hard-drive me-2"></i> Duyệt danh sách môn học</a>) },
+              // { key: '6-2', label: (<a href='/admin/students/assign-class'><i className="fa-brands fa-atlassian me-2"></i> Gán lớp học</a>) },
+              // { key: '6-3', label: (<a href='/admin/students/assign-subject'><i className="fa-regular fa-font-awesome me-2"></i> Gán môn học</a>) },
+              // { key: '6-4', label: (<a href='/admin/students/device'><i className="fa-regular fa-hard-drive me-2"></i> Thiết bị điểm danh</a>) },
+              // { key: '6-5', label: (<a href='/admin/students/approve/list'><i className="fa-regular fa-hard-drive me-2"></i> Duyệt danh sách môn học</a>) },
             ],
           },
           {
@@ -184,16 +205,16 @@ const Sidebar = ({ collapsed, setCollapsed, t }) => {
             type: 'group',
             label: <span className="text-xs text-gray-500 uppercase tracking-wide">Quản lý điểm danh</span>,
           },
-          {
-            key: '9',
-            icon: <TagsOutlined />,
-            label: 'Quản lý điểm danh',
-            children: [
-              { key: '9-1', label: (<a href='/admin/management/attendance/schedule'><i className="fa-brands fa-bandcamp me-2"></i> Lịch học</a>) },
-              { key: '9-2', label: (<a href='/admin/management/attendance/attendance'><i className="fa-brands fa-creative-commons-by me-2"></i> Buổi điểm danh</a>) },
-              { key: '9-3', label: (<a href='/admin/management/attendance/leave-requests'><i className="fa-brands fa-pagelines me-2"></i> Yêu cầu nghỉ phép</a>) },
-            ],
-          },
+          // {
+          //   key: '9',
+          //   icon: <TagsOutlined />,
+          //   label: 'Quản lý điểm danh',
+          //   children: [
+          //     { key: '9-1', label: (<a href='/admin/management/attendance/schedule'><i className="fa-brands fa-bandcamp me-2"></i> Lịch học</a>) },
+          //     { key: '9-2', label: (<a href='/admin/management/attendance/attendance'><i className="fa-brands fa-creative-commons-by me-2"></i> Buổi điểm danh</a>) },
+          //     { key: '9-3', label: (<a href='/admin/management/attendance/leave-requests'><i className="fa-brands fa-pagelines me-2"></i> Yêu cầu nghỉ phép</a>) },
+          //   ],
+          // },
           {
             key: 'title-management-log',
             type: 'group',
@@ -213,9 +234,14 @@ const Sidebar = ({ collapsed, setCollapsed, t }) => {
           },
           {
             key: '11',
-            icon: <LogoutOutlined />,
+            icon: <LogoutOutlined className='text-red-500'/>,
             label: (
-              <a href='/admin/logout'>Đăng xuất</a>
+              <span
+                onClick={handleLogout}
+                className='text-red-500 cursor-pointer font-bold'
+              >
+                Đăng xuất
+              </span>
             )
           },
         ]}

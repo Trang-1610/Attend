@@ -49,9 +49,9 @@ class AttendanceStatisticTotalSerializer(serializers.Serializer):
     # late_sessions = serializers.IntegerField()
     # absent_sessions = serializers.IntegerField()
 
-    # present_rate = serializers.FloatField()
-    # late_rate = serializers.FloatField()
-    # absent_rate = serializers.FloatField()
+    present_rate = serializers.FloatField()
+    late_rate = serializers.FloatField()
+    absent_rate = serializers.FloatField()
 # ==================================================
 # AMIN: Calulation the total of attendance session by each department
 # ==================================================
@@ -62,6 +62,25 @@ class AttendanceByDepartmentSerializer(serializers.Serializer):
     late_sessions = serializers.IntegerField()
     absent_sessions = serializers.IntegerField()
     total_sessions = serializers.IntegerField()
+    present_rate = serializers.FloatField()
+    late_rate = serializers.FloatField()
+    absent_rate = serializers.FloatField()
+# ==================================================
+# AMIN: Calulation the total of attendance session by day
+# ==================================================
+class AttendanceByDateSerializer(serializers.Serializer):
+    date = serializers.CharField()
+    attendance = serializers.IntegerField()
+# ==================================================
+# AMIN: Calulation the total of attendance session by class
+# ==================================================
+class AttendanceByClassSerializer(serializers.Serializer):
+    class_id = serializers.IntegerField()
+    class_name = serializers.CharField()
+    total_sessions = serializers.IntegerField()
+    present_sessions = serializers.IntegerField()
+    late_sessions = serializers.IntegerField()
+    absent_sessions = serializers.IntegerField()
     present_rate = serializers.FloatField()
     late_rate = serializers.FloatField()
     absent_rate = serializers.FloatField()

@@ -4,11 +4,9 @@ from .models import Student, SubjectRegistrationRequest
 import base64
 import uuid
 from django.core.files.base import ContentFile
-from rest_framework import serializers
 from accounts.models import Account, Role
 from accounts.serializers import AccountListSerializer
 import random
-from notifications.models import Notification
 from datetime import date
 import re
 
@@ -270,6 +268,7 @@ class StudentSemesterAcademicYearSerializer(serializers.Serializer):
 # ==================================================
 class AdminScheduleManagementSerializer(serializers.Serializer):
     subject_registration_request_id = serializers.IntegerField()
+    reason = serializers.CharField()
     register_status = serializers.CharField()
     created_at = serializers.DateTimeField()
     student_code = serializers.CharField()
@@ -303,3 +302,21 @@ class StudentCodeSerializer(serializers.Serializer):
 # ==================================================
 class TotalStudentSerializer(serializers.Serializer):
     total_student = serializers.IntegerField()
+# ==================================================
+# ADMIN: Approve subject registration request
+# ==================================================
+class ApproveScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubjectRegistrationRequest
+        fields = ['reason', 'approved_by']
+# ==================================================
+# Count subject registration request
+# ==================================================
+class CountSubjectRegistrationRequestSerializer(serializers.Serializer):
+    count_number_subject_registration = serializers.IntegerField()
+    status =  serializers.CharField(required=False, allow_null=True)
+
+    def validate_count_number_subject_registration(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Vui lòng đăng ký môn học để được tiếp tục sử dụng hệ thống")
+        return value

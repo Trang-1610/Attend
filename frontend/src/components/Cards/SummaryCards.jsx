@@ -9,8 +9,8 @@ export default function SummaryCards({ cards }) {
                         <i className={card.icon}></i>
                     </div>
                     <div>
-                        <p className="text-sm">{card.label}</p>
-                        <p className="text-xl font-semibold">{card.value}</p>
+                        <div className="text-sm">{card.label}</div>
+                        <div className="text-xl font-semibold">{card.value}</div>
                     </div>
                 </div>
             ))}

@@ -127,6 +127,7 @@ const OtpVerifyResetPassword = () => {
 
             if (res.data.success) {
                 message.success("Xác thực OTP thành công!");
+                localStorage.removeItem("user");
                 navigate("/account/entry-password/?redirect=" + randomId);
             } else {
                 message.error(res.data.error || "Mã OTP không hợp lệ!");

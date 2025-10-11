@@ -4,7 +4,7 @@ import {
     SearchOutlined,
     DownloadOutlined,
     ReloadOutlined,
-    UserAddOutlined
+    // UserAddOutlined
 } from '@ant-design/icons';
 import { saveAs } from 'file-saver';
 import Highlighter from 'react-highlight-words';
@@ -39,7 +39,7 @@ export default function StudentList() {
                 fullname: student.fullname,
                 phone: student.account?.phone_number || '',
                 email: student.account?.email || '',
-                gender: student.gender === "1" ? "Nam" : student.gender === "2" ? "Nữ" : "Khác",
+                gender: student.gender === "M" ? "Nam" : student.gender === "F" ? "Nữ" : "Khác",
                 dob: student.dob,
                 status: student.status === "1" ? "Đang học" : student.status === "2" ? "Tạm nghỉ" : "Đã tốt nghiệp",
                 is_locked: student.account?.is_locked,
@@ -137,16 +137,6 @@ export default function StudentList() {
             title: 'Giới tính',
             dataIndex: 'gender',
             key: 'gender',
-            filters: [
-                { text: 'Nam', value: 'Nam' },
-                { text: 'Nữ', value: 'Nữ' }
-            ],
-            onFilter: (value, record) => record.gender === value,
-            render: (gender) => (
-                <Tag color={gender === '1' ? 'blue' : 'red'}>
-                    {gender === '1' ? 'Nam' : 'Nữ'}
-                </Tag>
-            )
         },        
         {
             title: 'Ngày sinh',
@@ -243,14 +233,14 @@ export default function StudentList() {
                             <Button onClick={fetchStudents} className="w-full sm:w-auto" icon={<ReloadOutlined />} >
                                 Làm mới
                             </Button>
-                            <Button
+                            {/* <Button
                                 className="w-full sm:w-auto"
                                 type="primary"
                                 icon={<UserAddOutlined />}
                                 href="/admin/students/list/create"
                             >
                                 Thêm sinh viên
-                            </Button>
+                            </Button> */}
                             <Button
                                 className="w-full sm:w-auto"
                                 type="primary"

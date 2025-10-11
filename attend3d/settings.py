@@ -84,8 +84,9 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # 
-    "attend3d.middleware.thread_local.ThreadLocalMiddleware",
     "audit.middleware.AuditLogMiddleware",
+    "attend3d.middleware.thread_local.ThreadLocalMiddleware",
+    "accounts.middleware.UpdateLastActiveMiddleware",
     'crum.CurrentRequestUserMiddleware',
 ]
 

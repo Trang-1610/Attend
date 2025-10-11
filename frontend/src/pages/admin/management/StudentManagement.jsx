@@ -9,10 +9,11 @@ import {
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../../../components/Layout/Sidebar';
 import Navbar from '../../../components/Layout/Navbar';
-import { saveAs } from 'file-saver';
 import Highlighter from 'react-highlight-words';
 import api from '../../../api/axiosInstance';
 import { logout } from "../../../utils/auth";
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const { Header } = Layout;
 
@@ -21,7 +22,6 @@ export default function StudentManagement() {
     const [collapsed, setCollapsed] = useState(false);
     const [searchValue, setSearchValue] = useState('');
     const [students, setStudents] = useState([]);
-    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [searchedColumn, setSearchedColumn] = useState('');
     const searchInput = useRef(null);
@@ -214,26 +214,17 @@ export default function StudentManagement() {
         student.email.toLowerCase().includes(searchValue.toLowerCase())
     );
 
-    const rowSelection = {
-        selectedRowKeys,
-        onChange: (newSelectedKeys) => {
-            setSelectedRowKeys(newSelectedKeys);
-        },
-    };
-
-    const convertToCSV = (arr) => {
-        if (!arr.length) return '';
-        const keys = Object.keys(arr[0]);
-        const header = keys.join(',');
-        const rows = arr.map(obj => keys.map(k => `"${obj[k] ?? ''}"`).join(','));
-        return [header, ...rows].join('\n');
-    };
-
-    const exportCSV = () => {
+    const exportExcel = () => {
         const now = new Date();
-        const filename = `danh_sach_sinh_vien_${now.toISOString().replace(/[-:.]/g, '').slice(0, 15)}.csv`;
-        const csv = convertToCSV(filteredStudents);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const randonNumber = Math.floor(Math.random() * 100000);
+        const filename = `${randonNumber}_${now.toISOString().replace(/[-:.]/g, '').slice(0, 15)}.xlsx`;
+
+        const ws = XLSX.utils.json_to_sheet(filteredStudents);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "DanhSach");
+
+        const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
         saveAs(blob, filename);
     };
 
@@ -386,7 +377,7 @@ export default function StudentManagement() {
                             <Button
                                 type="primary"
                                 icon={<DownloadOutlined />}
-                                onClick={exportCSV}
+                                onClick={exportExcel}
                             >
                                 Xuất file CSV
                             </Button>
@@ -394,7 +385,6 @@ export default function StudentManagement() {
                     </div>
 
                     <Table
-                        rowSelection={rowSelection}
                         columns={columns}
                         dataSource={finalData}
                         pagination={{ pageSize: 10 }}
@@ -429,7 +419,6 @@ export default function StudentManagement() {
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     minLength={8}
                                     required
-                                    size='large'
                                     style={{ borderWidth: 1.5, boxShadow: 'none' }}
                                 />
                                 {newPassword && newPassword.length < 8 && (
@@ -441,8 +430,7 @@ export default function StudentManagement() {
                                 onClick={generateRandomPassword}
                                 icon={<ReloadOutlined />}
                                 className="mt-2 w-full"
-                                type='default'
-                                size='large'
+                                type='primary'
                             >
                                 Tạo mật khẩu ngẫu nhiên
                             </Button>

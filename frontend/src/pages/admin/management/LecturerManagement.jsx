@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import Sidebar from '../../../components/Layout/Sidebar';
 import Navbar from '../../../components/Layout/Navbar';
 import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
 import Highlighter from 'react-highlight-words';
 import api from '../../../api/axiosInstance';
 import { logout } from "../../../utils/auth";
@@ -21,7 +22,6 @@ export default function LecturerManagement() {
     const [collapsed, setCollapsed] = useState(false);
     const [searchValue, setSearchValue] = useState('');
     const [lecturers, setLecturers] = useState([]);
-    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [searchedColumn, setSearchedColumn] = useState('');
     const searchInput = useRef(null);
@@ -221,27 +221,18 @@ export default function LecturerManagement() {
         student.email.toLowerCase().includes(searchValue.toLowerCase())
     );
 
-    const rowSelection = {
-        selectedRowKeys,
-        onChange: (newSelectedKeys) => {
-            setSelectedRowKeys(newSelectedKeys);
-        },
-    };
-
-    const convertToCSV = (arr) => {
-        if (!arr.length) return '';
-        const keys = Object.keys(arr[0]);
-        const header = keys.join(',');
-        const rows = arr.map(obj => keys.map(k => `"${obj[k] ?? ''}"`).join(','));
-        return [header, ...rows].join('\n');
-    };
-
-    const exportCSV = () => {
-        const now = new Date();
-        const filename = `danh_sach_giang_vien_${now.toISOString().replace(/[-:.]/g, '').slice(0, 15)}.csv`;
-        const csv = convertToCSV(filteredStudents);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        saveAs(blob, filename);
+    const exportExcel = () => {
+            const randonNumber = Math.floor(Math.random() * 100000);
+            const now = new Date();
+            const filename = `${randonNumber}_${now.toISOString().replace(/[-:.]/g, '').slice(0, 15)}.xlsx`;
+    
+            const ws = XLSX.utils.json_to_sheet(filteredStudents);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "DanhSach");
+    
+            const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+            const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+            saveAs(blob, filename);
     };
 
     const openResetPasswordModal = (lecturer) => {
@@ -389,7 +380,7 @@ export default function LecturerManagement() {
                             <Button
                                 type="primary"
                                 icon={<DownloadOutlined />}
-                                onClick={exportCSV}
+                                onClick={exportExcel}
                             >
                                 Xuất file CSV
                             </Button>
@@ -397,7 +388,6 @@ export default function LecturerManagement() {
                     </div>
 
                     <Table
-                        rowSelection={rowSelection}
                         columns={columns}
                         dataSource={filteredStudents}
                         pagination={{ pageSize: 10 }}
@@ -432,7 +422,6 @@ export default function LecturerManagement() {
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     minLength={8}
                                     required
-                                    size='large'
                                     style={{ borderWidth: 1.5, boxShadow: 'none' }}
                                 />
                                 {newPassword && newPassword.length < 8 && (
@@ -443,8 +432,8 @@ export default function LecturerManagement() {
                             <Button
                                 onClick={generateRandomPassword}
                                 icon={<ReloadOutlined />}
-                                className="mt-2 bg-white border border-gray-300 w-full"
-                                size='large'
+                                className="mt-2 w-full"
+                                type='primary'
                             >
                                 Tạo mật khẩu ngẫu nhiên
                             </Button>

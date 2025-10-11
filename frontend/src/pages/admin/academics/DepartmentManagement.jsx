@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Table, Button, Space, message } from 'antd';
 import {
     SearchOutlined,
-    PlusOutlined,
+    // PlusOutlined,
     ReloadOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -115,33 +115,32 @@ export default function DepartmentManagement() {
             key: 'departmentName',
             ...getColumnSearchProps('departmentName'),
         },
-        {
-            title: 'Hành động',
-            key: 'actions',
-            render: (_, record) => (
-                <Space>
-                    <Button size="small" onClick={() => handleDetail(record)}>Chi tiết</Button>
-                    <Button size="small" danger onClick={() => handleDelete(record)}>Xóa</Button>
-                </Space>
-            ),
-        },
+        // {
+        //     title: 'Hành động',
+        //     key: 'actions',
+        //     render: (_, record) => (
+        //         <Space>
+        //             <Button size="small" type='primary' onClick={() => handleUpdate(record)}>Cập nhật</Button>
+        //         </Space>
+        //     ),
+        // },
     ];
 
-    const handleDetail = (department) => {
-        console.log("Chi tiết khoa", department);
-    };
+    // const handleUpdate = (department) => {
+    //     console.log("Chi tiết khoa", department);
+    // };
 
-    const handleDelete = async (department) => {
-        try {
-            await fetch(`/api/departments/${department.departmentId}`, {
-                method: 'DELETE',
-            });
-            message.success("Xoá thành công!");
-            fetchDepartments();
-        } catch (err) {
-            message.error("Xoá thất bại!");
-        }
-    };
+    // const handleDelete = async (department) => {
+    //     try {
+    //         await fetch(`/api/departments/${department.departmentId}`, {
+    //             method: 'DELETE',
+    //         });
+    //         message.success("Xoá thành công!");
+    //         fetchDepartments();
+    //     } catch (err) {
+    //         message.error("Xoá thất bại!");
+    //     }
+    // };
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
@@ -162,13 +161,13 @@ export default function DepartmentManagement() {
                             >
                                 Làm mới
                             </Button>
-                            <Button
+                            {/* <Button
                                 type="primary"
                                 icon={<PlusOutlined />}
                                 href="/admin/departments/create"
                             >
                                 Thêm khoa
-                            </Button>
+                            </Button> */}
                         </Space>
                     </div>
 
