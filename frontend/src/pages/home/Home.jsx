@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import Footer from "../../components/Layout/Footer";
 import api from '../../api/axiosInstance';
 import { message, Modal, Skeleton } from "antd";
-
 import ScheduleIcon from "../../assets/icons/scheduling.png";
 import ContactIcon from "../../assets/icons/contact-us.png";
 import DashboardIcon from "../../assets/icons/dashboard.png";
@@ -18,9 +17,7 @@ import ReminderIcon from "../../assets/icons/reminder-notes.png";
 import QRCodeIcon from "../../assets/icons/scan-code.png";
 import SettingIcon from "../../assets/icons/settings.png";
 import TermIcon from "../../assets/icons/terms.png";
-// import TranslateIcon from "../../assets/icons/translate.png";
 import WarningIcon from "../../assets/icons/message-warning.png";
-// import AdminIcon from "../../assets/icons/admin.png";
 import LogoutIcon from "../../assets/icons/logout.png";
 import ProfileIcon from "../../assets/icons/profile.png";
 import IntroductionIcon from "../../assets/icons/introduction.png";
@@ -101,7 +98,7 @@ export default function HomePage() {
         { name: t("attendance qr code"), img: QRCodeIcon, path: "attendance/attendance-qr" },
         { name: t("attendance face"), img: ScanFaceIcon, path: "attendance/add-face" },
         { name: t("attendance history"), img: HistoryIcon, path: "attendance/attendance-history" },
-        { name: t("request leave"), img: LeaveIcon, path: "/add-event/request-leave/request" },
+        { name: t("request leave"), img: LeaveIcon, path: "/add-event/request-leave" },
 
         { name: t("statistics"), img: DashboardIcon, path: "/attendance/statistics" },
         { name: t("notifications") + ` (${notifications.length})`, img: NotificationIcon, path: "/notifications/all" },
@@ -110,11 +107,9 @@ export default function HomePage() {
         { name: t('contact'), img: ContactIcon, path: "/contact" },
         { name: t("setting"), img: SettingIcon, path: "/general-setting" },
         { name: t("terms"), img: TermIcon, path: "/terms" },
-        // { name: "Chuyển đổi ngôn ngữ", img: TranslateIcon, path: "/language" },
         { name: t("profile"), img: ProfileIcon, path: "/profile" },
 
         { name: t("report error"), img: WarningIcon, path: "https://forms.gle/hzNeY832k6dEwfqDA" },
-        // { name: "Quản trị", img: AdminIcon, path: "/admin/dashboard" },
         { name: t("logout"), img: LogoutIcon, action: handleLogout },
     ];
 
@@ -124,7 +119,6 @@ export default function HomePage() {
                 <Header />
                 <main className="container m-auto mt-20">
                     {loading ? (
-                        // Skeleton to display loading state
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
                             {Array.from({ length: 12 }).map((_, index) => (
                                 <Skeleton.Button

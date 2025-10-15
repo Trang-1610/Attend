@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Typography, Card, Button, Form, message, Steps, Spin } from "antd";
+import { Typography, Card, Button, Form, message, Steps } from "antd";
 import { RightOutlined, LeftOutlined, CheckOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
@@ -8,6 +8,7 @@ import UserForm from "../../components/Account/UserForm";
 import StatusTag from "../../components/Account/StatusTag";
 import CourseRegistrationForm from "../../components/Account/CourseRegistrationForm";
 import AvatarUpload from "../../components/Account/AvatarUpload";
+import Spin from "../../components/Spin/Spin";
 
 const { Title } = Typography;
 const { Step } = Steps;
@@ -188,9 +189,7 @@ export default function AccountInformation() {
                     message.error(avatarRes.data?.message || "Cập nhật avatar thất bại");
                     return;
                 }
-
-                // message.success(avatarRes.data?.message || "Cập nhật avatar thành công!");
-            }
+            };
 
             const registrationRequests = Object.values(selectedSchedules).map((schedule) => ({
                 student: studentId,
@@ -220,7 +219,7 @@ export default function AccountInformation() {
                     }
                     return;
                 }
-            }
+            };
 
             message.success("Đăng ký môn học thành công!");
 
@@ -234,7 +233,7 @@ export default function AccountInformation() {
             message.error(err.response?.data?.message || err.message || "Lỗi kết nối hệ thống");
         } finally {
             setLoading(false);
-        }
+        };
     };
 
     return (
@@ -324,7 +323,7 @@ export default function AccountInformation() {
                     </div>
                 </main>
             </div>
-            <Spin spinning={loading} fullscreen tip="Đang xử lý. Vui lòng chờ..." />
+            <Spin spinning={loading} text="Đang xử lý. Vui lòng chờ..." />
         </div>
     );
 }

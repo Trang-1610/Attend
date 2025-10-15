@@ -109,7 +109,7 @@ const ForgotPassword = () => {
                     <div className="flex flex-col items-center space-y-2 text-sm">
                         {userRole === "student" ? (
                             <a
-                                href="/account/login/"
+                                href="/"
                                 className="text-blue-600 hover:underline"
                             >
                                 <ArrowLeftOutlined /> Quay lại

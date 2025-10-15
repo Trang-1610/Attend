@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { Card, Breadcrumb, Progress } from "antd";
-import {
-    HomeOutlined,
-    CheckCircleOutlined,
-    CloseCircleOutlined,
-    InfoCircleOutlined,
-} from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { Card, Progress } from "antd";
 import { useTranslation } from "react-i18next";
 import Footer from "../../components/Layout/Footer";
 import Header from "../../components/Layout/Header";
 import BarChart from "../../components/Chart/AttendanceBarChart";
+import FullScreenLoader from "../../components/Spin/Spin";
+import BreadcrumbAttendanceStatistic from "../../components/Breadcrumb/AttendanceStatistic";
+import CardPresentOnTime from "../../components/Cards/PresentOnTime";
+import CardAbsentCount from "../../components/Cards/AbsentCount";
+import CardLateCount from "../../components/Cards/LateCount";
+import CardTotalSession from "../../components/Cards/ToTalSession";
 import api from "../../api/axiosInstance";
+import { getAccountId } from "../../utils/auth";
 
 export default function StudentAttendanceStatsPage() {
     const { t } = useTranslation();
@@ -21,14 +22,16 @@ export default function StudentAttendanceStatsPage() {
         absent_count: 0,
     });
     const [chartData, setChartData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const user = JSON.parse(localStorage.getItem("user"));
-    const accountId = user?.account_id;
+    // Get account id
+    const accountId = getAccountId();
 
     useEffect(() => {
         document.title = "ATTEND 3D - Thống kê điểm danh";
 
         const fetchSummary = async () => {
+            setLoading(true);
             try {
                 const res = await api.get(
                     `attendance/attendance-summary/${accountId}/`
@@ -38,10 +41,13 @@ export default function StudentAttendanceStatsPage() {
                 }
             } catch (error) {
                 console.error("Error fetching summary:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
         const fetchStatistics = async () => {
+            setLoading(true);
             try {
                 const res = await api.get(
                     `attendance/attendance-statistics/${accountId}/`
@@ -51,6 +57,8 @@ export default function StudentAttendanceStatsPage() {
                 }
             } catch (error) {
                 console.error("Error fetching statistics:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -64,22 +72,7 @@ export default function StudentAttendanceStatsPage() {
                 <Header />
                 <main className="w-full mt-10 mx-auto flex-grow">
                     <div className="w-full px-4">
-                        <Breadcrumb
-                            items={[
-                                {
-                                    href: "/",
-                                    title: (
-                                        <>
-                                            <HomeOutlined /> <span>{"Trang chủ"}</span>
-                                        </>
-                                    ),
-                                },
-                                {
-                                    href: "/attendance/statistics",
-                                    title: "Thống kê điểm danh",
-                                },
-                            ]}
-                        />
+                        <BreadcrumbAttendanceStatistic t={t} />
                     </div>
 
                     <h1 className="text-2xl font-semibold mt-6 mb-4">
@@ -87,62 +80,20 @@ export default function StudentAttendanceStatsPage() {
                     </h1>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                        <Card>
-                            <div className="flex items-center space-x-4">
-                                <CheckCircleOutlined className="text-green-500 text-2xl" />
-                                <div>
-                                    <p className="text-sm text-gray-500">Có mặt</p>
-                                    <p className="text-lg font-bold">
-                                        {summary.present_on_time} buổi
-                                    </p>
-                                </div>
-                            </div>
-                        </Card>
-                        <Card>
-                            <div className="flex items-center space-x-4">
-                                <CloseCircleOutlined className="text-red-500 text-2xl" />
-                                <div>
-                                    <p className="text-sm text-gray-500">Vắng</p>
-                                    <p className="text-lg font-bold">
-                                        {summary.absent_count} buổi
-                                    </p>
-                                </div>
-                            </div>
-                        </Card>
-                        <Card>
-                            <div className="flex items-center space-x-4">
-                                <InfoCircleOutlined className="text-orange-500 text-2xl" />
-                                <div>
-                                    <p className="text-sm text-gray-500">Đi muộn</p>
-                                    <p className="text-lg font-bold">
-                                        {summary.late_count} buổi
-                                    </p>
-                                </div>
-                            </div>
-                        </Card>
-                        <Card>
-                            <div className="flex items-center space-x-4">
-                                <InfoCircleOutlined className="text-blue-500 text-2xl" />
-                                <div>
-                                    <p className="text-sm text-gray-500">Tổng số buổi</p>
-                                    <p className="text-lg font-bold">
-                                        {summary.total_sessions} buổi
-                                    </p>
-                                </div>
-                            </div>
-                        </Card>
+                        <CardPresentOnTime summary={summary} />
+                        <CardAbsentCount summary={summary} />
+                        <CardLateCount summary={summary} />
+                        <CardTotalSession summary={summary} />
                     </div>
-
                     <Card title="Tỷ lệ có mặt">
                         <Progress percent={summary.attendance_rate_percent} status="active" />
                     </Card>
-
                     <Card title="Thống kê theo môn học" className="mt-6">
                         <BarChart data={chartData} />
                     </Card>
                 </main>
+                <FullScreenLoader loading={loading} text={"Đang tải dữ liệu...Vui lòng đợi"} />
             </div>
-
             <Footer />
         </div>
     );

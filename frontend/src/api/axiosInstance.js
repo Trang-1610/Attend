@@ -91,27 +91,32 @@ api.interceptors.response.use(
             } catch (e) {
                 isRefreshing = false;
                 refreshPromise = null;
-                
-                try {
-                    await raw.post("accounts/logout/");
-                    localStorage.clear();
-                    sessionStorage.clear();
-                } catch (err) {
-                    console.error("Force logout error:", err);
-                } finally {
-                    clearAuthCookies();
-                    localStorage.clear();
-                    sessionStorage.clear();
 
-                    // notify other components
-                    window.dispatchEvent(new CustomEvent("session-expired"));
-
-                    const currentPath = window.location.pathname + window.location.search;
-                    const loginUrl = `/account/login?next=${encodeURIComponent(currentPath)}`;
-                    window.location.replace(loginUrl);
-                }
+                console.warn("Session expired — dispatching event for logout");
+                window.dispatchEvent(new CustomEvent("session-expired"));
 
                 return Promise.reject(e);
+                
+                // try {
+                //     await raw.post("accounts/logout/");
+                //     localStorage.clear();
+                //     sessionStorage.clear();
+                // } catch (err) {
+                //     console.error("Force logout error:", err);
+                // } finally {
+                //     clearAuthCookies();
+                //     localStorage.clear();
+                //     sessionStorage.clear();
+
+                //     // notify other components
+                //     window.dispatchEvent(new CustomEvent("session-expired"));
+
+                //     const currentPath = window.location.pathname + window.location.search;
+                //     const loginUrl = `/account/login?next=${encodeURIComponent(currentPath)}`;
+                //     window.location.replace(loginUrl);
+                // }
+
+                // return Promise.reject(e);
             }
         }
         return Promise.reject(error);

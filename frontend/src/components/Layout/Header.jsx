@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Button, Avatar, Dropdown, message, Popover, Badge, Drawer, Menu, Modal } from "antd";
-import { PhoneOutlined, ScanOutlined, SettingOutlined, MenuOutlined, UserOutlined, BarChartOutlined, PlusCircleOutlined, WechatWorkOutlined, AuditOutlined, LogoutOutlined, UserSwitchOutlined, BellOutlined, } from "@ant-design/icons";
-
-import Logo from "../../assets/general/face-recognition.png";
+import { PhoneOutlined, ScanOutlined, SettingOutlined, UserOutlined, BarChartOutlined, 
+    PlusCircleOutlined, WechatWorkOutlined, AuditOutlined, LogoutOutlined, UserSwitchOutlined, } from "@ant-design/icons";
 import i18n from "i18next";
 import { useTranslation } from "react-i18next";
-import api from "../../api/axiosInstance";
-import { logout } from "../../utils/auth";
 import { useLocation } from "react-router-dom";
-import SoundMessage from "../../assets/sounds/message.mp3";
-import playSound from "../../utils/playSound";
 import {Icons} from "../Icons/Icons";
 import { useAppContext } from "../../context/Context";
+import useNotifications from "../../hooks/useNotifications";
+import DrawerHeader from "../Drawer/DrawerHeader";
+import DropdownHeader from "../Dropdown/DropdownHeader";
+import PopoverHeader from "../Popover/PopoverHeader";
+import ButtonHeader from "../Button/ButtonHeader";
+import MenuHeader from "../Menu/MenuHeader";
+import LogoHeader from "../LogoHeader";
+import ModalLogout from "../Modal/ModalLogout";
 
 export default function Header() {
 
@@ -20,26 +22,11 @@ export default function Header() {
     const [openDrawer, setOpenDrawer] = useState(false);
     const { t } = useTranslation();
     const [selectedKeys, setSelectedKeys] = useState([]);
-    // const [user, setUser] = useState(null);
-    // const [notifications, setNotifications] = useState([]);
     const location = useLocation();
 
+    useNotifications(user, setNotifications);
+
     const userRole = user?.role;
-
-    useEffect(() => {
-        if (!user?.account_id) return;
-
-        const fetchInitialNotifications = async () => {
-            try {
-                const res = await api.get(`notifications/${user.account_id}/unread/`);
-                setNotifications(Array.isArray(res.data) ? res.data : []);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        fetchInitialNotifications();
-    }, [user?.account_id, setNotifications]);
 
     useEffect(() => {
         const path = location.pathname;
@@ -55,76 +42,8 @@ export default function Header() {
         else setSelectedKeys([]);
     }, [location]);
 
-    // useEffect(() => {
-    //     const fetchUser = async () => {
-    //         try {
-    //             const res = await api.get("/accounts/me/", { withCredentials: true });
-    //             setUser(res.data);
-    //         } catch {
-    //             setUser(null);
-    //         }
-    //     };
-
-    //     fetchUser();
-    // }, []);
-
-    useEffect(() => {
-        if (!user?.account_id) return;
-
-        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-        const socket = new WebSocket(`${wsScheme}://127.0.0.1:8000/ws/notifications/${user.account_id}/`);
-
-        socket.onopen = () => {
-            console.log("WebSocket connected");
-        };
-
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                playSound(SoundMessage);
-                if (data.unread_count !== undefined) {
-                    setNotifications((prev) =>
-                        prev.map(n => data.ids.includes(n.id) ? { ...n, is_read: '1' } : n)
-                    );
-                } else {
-                    setNotifications((prev) => [data, ...prev]);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        socket.onclose = () => {
-            console.log("WebSocket closed");
-        };
-
-        socket.onerror = (err) => {
-            console.error("WebSocket error:", err);
-        };
-
-        return () => {
-            socket.close();
-        };
-    }, [user?.account_id, setNotifications]);
-
     const handleLogout = () => {
-        Modal.confirm({
-            title: "Xác nhận đăng xuất",
-            content: "Bạn có chắc chắn muốn đăng xuất không?",
-            okText: "Đăng xuất",
-            cancelText: "Hủy",
-            onOk: async () => {
-                try {
-                    await logout();
-                    message.success("Đăng xuất thành công");
-                    window.location.href = "/account/login";
-                    localStorage.clear();
-                    sessionStorage.clear();
-                } catch (err) {
-                    message.error("Có lỗi khi đăng xuất");
-                }
-            },
-        });
+        ModalLogout();
     };
 
     const items = [
@@ -327,79 +246,42 @@ export default function Header() {
 
     return (
         <header className="flex justify-between items-center py-4 px-4 md:px-10 border-b border-gray-200 w-full">
-            <div className="flex items-center space-x-3">
-                <a href="/" className="flex items-center space-x-2 hover:opacity-90 transition">
-                    <img src={Logo} alt="Logo" className="h-8 w-8 object-contain" />
-                    <span className="text-xl md:text-2xl font-extrabold text-gray-800 tracking-wide">
-                        FACE <span className="text-blue-600">CLASS</span>
-                    </span>
-                </a>
-            </div>
+            <LogoHeader />
 
             <div className="hidden md:flex flex-grow justify-between items-center ml-10 font-bold">
-                <Menu
-                    mode="horizontal"
-                    items={items}
-                    selectedKeys={selectedKeys}
-                    onClick={({ key }) => {
-                        if (key === "vi" || key === "en") {
-                            i18n.changeLanguage(key);
-                            localStorage.setItem("lang", key);
-                        } else {
-                            setSelectedKeys([key]);
-                        }
-                    }}
-                    className="flex-1 bg-transparent border-b-0 font-bold"
+                <MenuHeader 
+                    items={items} 
+                    selectedKeys={selectedKeys} 
+                    setSelectedKeys={setSelectedKeys} 
+                    i18n={i18n} 
                 />
 
                 <div className="space-x-4 flex-shrink-0 flex items-center">
                     <>
-                        <Popover
-                            content={notificationContent}
-                            title={t("notifications")}
-                            trigger="hover"
-                            placement="bottomRight"
-                            className="max-w-xs"
-                        >
-                            <Badge count={notifications.length} size="small">
-                                <BellOutlined style={{ fontSize: 20, cursor: "pointer" }} />
-                            </Badge>
-                        </Popover>
+                        <PopoverHeader 
+                            notificationContent={notificationContent} 
+                            notifications={notifications} 
+                            t={t} 
+                        />
 
-                        <Dropdown trigger={["hover"]} placement="bottomRight" menu={{ items: userMenuItems }}>
-                            <div className="flex items-center gap-2 cursor-pointer">
-                                {user?.avatar ? (
-
-                                    <img
-                                        src={user?.avatar}
-                                        alt="Avatar"
-                                        className="h-10 w-10 rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <Avatar icon={<UserOutlined />} />
-                                )}
-                            </div>
-                        </Dropdown>
+                        <DropdownHeader 
+                            userMenuItems={userMenuItems} 
+                            user={user} 
+                        />
                     </>
                 </div>
             </div>
 
             <div className="md:hidden">
-                <Button icon={<MenuOutlined />} type="text" onClick={() => setOpenDrawer(true)} />
+                <ButtonHeader setOpenDrawer={setOpenDrawer} />
             </div>
 
-            <Drawer title="Menu" className="font-bold" placement="right" onClose={() => setOpenDrawer(false)} open={openDrawer}>
-                <Menu
-                    mode="inline"
-                    items={items}
-                    onClick={({ key }) => {
-                        if (key === "vi" || key === "en") {
-                            i18n.changeLanguage(key);
-                        }
-                        setOpenDrawer(false);
-                    }}
-                />
-            </Drawer>
+            <DrawerHeader
+                items={items}
+                setOpenDrawer={setOpenDrawer}
+                openDrawer={openDrawer}
+                i18n={i18n}
+            />
         </header>
     );
 }

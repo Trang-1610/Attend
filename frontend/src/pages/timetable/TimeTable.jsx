@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, Breadcrumb, Tabs, Typography, Spin } from "antd";
-import { HomeOutlined, ScheduleOutlined } from "@ant-design/icons";
 import Footer from "../../components/Layout/Footer";
 import Header from "../../components/Layout/Header";
+import BreadcrumbTimeTable from "../../components/Breadcrumb/TimeTable";
+import CardTimeTable from "../../components/Cards/TimeTable";
+import FullScreenLoader from "../../components/Spin/Spin";
 import api from "../../api/axiosInstance";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -12,12 +13,11 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import WeekView from "../../components/TimeTable/WeekView";
 import MonthView from "../../components/TimeTable/MonthView";
 import { buildWeekSchedule } from "../../components/utils/utilsTimeTable";
+import { getAccountId } from "../../utils/auth";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-const { Title } = Typography;
 
 export default function TimeTable() {
     const { t } = useTranslation();
@@ -26,14 +26,10 @@ export default function TimeTable() {
     const [loading, setLoading] = useState(true);
     const [currentTime, setCurrentTime] = useState(dayjs().tz("Asia/Ho_Chi_Minh"));
 
-    useEffect(() => {
-        document.title = "ATTEND 3D - " + t("timetable");
-        fetchSchedule();
-    }, [t]);
+    // Get account id
+    const accountId = getAccountId();
 
-    const fetchSchedule = async () => {
-        const user = localStorage.getItem("user");
-        const accountId = user ? JSON.parse(user).account_id : null;
+    const fetchSchedule = useCallback(async () => {
         try {
             const res = await api.get("students/schedules/" + accountId + "/");
             setScheduleData(res.data);
@@ -42,7 +38,12 @@ export default function TimeTable() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [accountId]);
+
+    useEffect(() => {
+        document.title = "ATTEND 3D - " + t("timetable");
+        fetchSchedule();
+    }, [t, fetchSchedule]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -54,8 +55,16 @@ export default function TimeTable() {
     const weekSchedule = buildWeekSchedule(scheduleData, currentTime);
 
     const items = [
-        { key: "week", label: "Theo tuần", children: loading ? <Spin /> : <WeekView weekSchedule={weekSchedule} currentTime={currentTime} /> },
-        { key: "month", label: "Theo tháng", children: loading ? <Spin /> : <MonthView scheduleData={scheduleData} currentTime={currentTime} /> },
+        {
+            key: "week",
+            label: "Theo tuần",
+            children: loading ? <FullScreenLoader loading={loading} text={"Đang tải dữ liệu...Vui lòng đợi"} /> : <WeekView weekSchedule={weekSchedule} currentTime={currentTime} />
+        },
+        {
+            key: "month",
+            label: "Theo tháng",
+            children: loading ? <FullScreenLoader loading={loading} text={"Đang tải dữ liệu...Vui lòng đợi"} /> : <MonthView scheduleData={scheduleData} currentTime={currentTime} />
+        },
     ];
 
     return (
@@ -64,19 +73,14 @@ export default function TimeTable() {
                 <Header />
                 <main className="m-auto mt-10 px-4">
                     <div className="w-full px-2 mb-6">
-                        <Breadcrumb
-                            items={[
-                                { href: "/", title: <><HomeOutlined /> <span>{t("home")}</span></> },
-                                { href: "/timetable", title: <><ScheduleOutlined /> <span>{t("timetable")}</span></> },
-                            ]}
-                        />
+                        <BreadcrumbTimeTable t={t} />
                     </div>
-                    <Card
-                        title={<Title level={4} style={{ margin: 0 }}>{t("timetable")}</Title>}
-                        className="rounded-lg"
-                    >
-                        <Tabs activeKey={activeTab} onChange={setActiveTab} items={items} />
-                    </Card>
+                    <CardTimeTable
+                        t={t}
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        items={items}
+                    />
                 </main>
             </div>
             <Footer />

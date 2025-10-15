@@ -1,11 +1,12 @@
-import React, { useEffect } from "react";
-import { Button, Card, Breadcrumb, Select, Slider } from "antd";
-import { HomeOutlined, PhoneOutlined, BgColorsOutlined, LockOutlined, SkinOutlined, } from "@ant-design/icons";
+import { useEffect } from "react";
+import { Button, Card, Select, Slider } from "antd";
+import { BgColorsOutlined, LockOutlined, SkinOutlined, } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import Footer from "../../components/Layout/Footer";
 import Header from "../../components/Layout/Header";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
+import BreadcrumbGeneralSetting from "../../components/Breadcrumb/GeneralSetting";
 
 const { Option } = Select;
 
@@ -29,19 +30,7 @@ export default function GeneralSetting() {
                 <Header />
                 <main className="mt-10 flex flex-col items-center">
                     <div className="w-full px-4">
-                        <Breadcrumb
-                            items={[
-                                { href: "/", title: <><HomeOutlined /> <span>{"Trang chủ"}</span></> },
-                                {
-                                    href: "/general-setting",
-                                    title: (
-                                        <>
-                                            <PhoneOutlined /> <span>{t("general_setting")}</span>
-                                        </>
-                                    ),
-                                }
-                            ]}
-                        />
+                        <BreadcrumbGeneralSetting t={t} />
                     </div>
 
                     <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

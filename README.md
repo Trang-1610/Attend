@@ -126,6 +126,8 @@ python manage.py seed_schedule # When system have lecturer's accounts
 daphne attend3d.asgi:application
 # Or
 daphne -b 127.0.0.1 -p 8000 attend3d.asgi:application
+# Or dev change code
+uvicorn attend3d.asgi:application --reload --host 127.0.0.1 --port 8000 / uvicorn attend3d.asgi:application --reload
 ```
 
 ---

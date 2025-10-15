@@ -3,12 +3,12 @@ from students.models import Student
 from subjects.models import Subject
 from lecturers.models import Lecturer
 from helper.generate_random_code import generate_random_code
+from django.core.serializers.json import DjangoJSONEncoder
 
 class LeaveStatus(models.TextChoices):
     PENDING = "P", "Pending"
     APPROVED = "A", "Approved"
     REJECTED = "R", "Rejected"
-
 
 class LeaveRequest(models.Model):
     leave_request_id = models.BigAutoField(primary_key=True)
@@ -46,6 +46,8 @@ class LeaveRequest(models.Model):
         blank=True,
         related_name="targeted_leave_requests" 
     )
+
+    images_urls = models.JSONField(encoder=DjangoJSONEncoder, default=list, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

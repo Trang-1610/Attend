@@ -61,8 +61,8 @@ INSTALLED_APPS = [
     'lecturers',
     'contact',
     
-    'notifications',
-    # 'notifications.apps.NotificationsConfig',
+    # 'notifications',
+    'notifications.apps.NotificationsConfig',
 
     'rooms',
     'students',
@@ -233,6 +233,15 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ========================
+# FILE UPLOAD ARE DEFINED HERE
+# ========================
+
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
+]
+
+# ========================
 # CORS ARE DEFINED HERE
 # ========================
 
@@ -244,9 +253,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000",
     "http://localhost:3000",
-    "http://localhost:8000",
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "authorization",

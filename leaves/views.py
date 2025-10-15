@@ -130,6 +130,11 @@ class LeaveRequestRawView(APIView):
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     queryset = LeaveRequest.objects.all()
     serializer_class = SaveLeaveRequestSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 # ==================================================
 # List subjects leave request view
 # ==================================================

@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Button, Form, Input, Typography, Card, Breadcrumb, Select, Row, Col, Descriptions, Avatar, message } from "antd";
-import { HomeOutlined, PhoneOutlined, UserOutlined, MailOutlined, PhoneOutlined as PhoneIcon } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { Form, message } from "antd";
 import { useTranslation } from "react-i18next";
+
 import Footer from "../../components/Layout/Footer";
 import Header from "../../components/Layout/Header";
 import api from "../../api/axiosInstance";
-
-const { Title } = Typography;
-const { TextArea } = Input;
+import BreadcrumbContact from "../../components/Breadcrumb/Contact";
+import CardInformationContact from "../../components/Cards/InformationContact";
+import FullScreenLoader from "../../components/Spin/Spin";
 
 export default function ContactPage() {
     const { t } = useTranslation();
@@ -16,6 +16,7 @@ export default function ContactPage() {
     const [subjects, setSubjects] = useState([]);
     const [, setSelectedSubject] = useState(null);
     const [selectedLecturerInfo, setSelectedLecturerInfo] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         document.title = "ATTEND 3D - " + t("contact");
@@ -24,12 +25,15 @@ export default function ContactPage() {
     }, [t]);
 
     const fetchSubjects = async () => {
+        setLoading(true);
         try {
             const res = await api.get(`lecturers/lecturer-contact/`);
             setSubjects(res.data || []);
         } catch (error) {
             console.error("Error fetching subjects:", error);
             setSubjects([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -39,9 +43,9 @@ export default function ContactPage() {
     };
 
     const onFinish = async (values) => {
+        setLoading(true);
         try {
             const { object_contact, subject, content } = values;
-
             if (!object_contact) {
                 return message.warning("Vui lòng chọn đối tượng liên hệ.");
             }
@@ -79,6 +83,8 @@ export default function ContactPage() {
             } else {
                 message.error("Lỗi mạng hoặc máy chủ. Vui lòng thử lại.");
             }
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -88,165 +94,24 @@ export default function ContactPage() {
                 <Header />
                 <main className="mt-10 flex flex-col items-center">
                     <div className="w-full px-4">
-                        <Breadcrumb
-                            items={[
-                                { href: "/", title: <><HomeOutlined /> <span>{t("home")}</span></> },
-                                {
-                                    href: "/contact",
-                                    title: (
-                                        <>
-                                            <PhoneOutlined /> <span>{t("contact")}</span>
-                                        </>
-                                    ),
-                                },
-                            ]}
+                        <BreadcrumbContact t={t} />
+                    </div>
+                    <div className="w-full p-5 rounded-lg mt-0">
+                        <CardInformationContact
+                            t={t}
+                            form={form}
+                            onFinish={onFinish}
+                            handleContactTypeChange={handleContactTypeChange}
+                            contactType={contactType}
+                            subjects={subjects}
+                            setSelectedSubject={setSelectedSubject}
+                            selectedLecturerInfo={selectedLecturerInfo}
+                            setSelectedLecturerInfo={setSelectedLecturerInfo}
+                            loading={loading}
                         />
                     </div>
-
-                    <div className="w-full p-5 rounded-lg mt-0">
-                        <Card
-                            title={
-                                <Title level={3} className="text-start">
-                                    {t("send contact information")}
-                                </Title>
-                            }
-                            className="p-6"
-                        >
-                            <Form
-                                form={form}
-                                name="contact_form"
-                                layout="vertical"
-                                method="POST"
-                                autoComplete="off"
-                                onFinish={onFinish}
-                            >
-                                <Row gutter={24}>
-                                    <Col xs={24} md={24}>
-                                        <Form.Item
-                                            label={t("contact object")}
-                                            name="object_contact"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    message: t("please select a contact person"),
-                                                },
-                                            ]}
-                                        >
-                                            <Select
-                                                showSearch
-                                                size="large"
-                                                allowClear
-                                                onChange={handleContactTypeChange}
-                                                options={[
-                                                    { value: "lecturer", label: t("lecturer") },
-                                                    { value: "admin", label: t("admin") },
-                                                ]}
-                                                className="w-full custom-select"
-                                                placeholder={t("select a contact person")}
-                                            />
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-
-                                {contactType === "lecturer" && (
-                                    <Row gutter={24}>
-                                        <Col xs={24} md={12}>
-                                            <Form.Item
-                                                label={t("subject")}
-                                                name="subject"
-                                                rules={[{ required: true, message: t("please select a subject") }]}
-                                            >
-                                                <Select
-                                                    showSearch
-                                                    size="large"
-                                                    allowClear
-                                                    placeholder={t("enter your subject")}
-                                                    options={subjects.map((subject) => ({
-                                                        value: subject.subject_id,
-                                                        label: subject.subject_name,
-                                                    }))}
-                                                    onChange={(value) => {
-                                                        setSelectedSubject(value);
-                                                        const lecturer = subjects.find((s) => s.subject_id === value);
-                                                        setSelectedLecturerInfo(lecturer || null);
-
-                                                        form.setFieldsValue({
-                                                            lecturer: lecturer?.fullname || "",
-                                                        });
-                                                    }}
-                                                    className="w-full custom-select"
-                                                />
-                                            </Form.Item>
-
-                                            <Form.Item
-                                                label={t("lecturer")}
-                                                name="lecturer"
-                                            >
-                                                <Input
-                                                    size="large"
-                                                    disabled
-                                                />
-                                            </Form.Item>
-                                        </Col>
-
-                                        <Col xs={24} md={12}>
-                                            <Card size="small" title={t("lecturer information")} className="h-full">
-                                                {selectedLecturerInfo ? (
-                                                    <Descriptions column={1} size="small">
-                                                        <Descriptions.Item label={t("lecturer")}>
-                                                            <div className="flex items-center gap-3">
-                                                                <Avatar
-                                                                    src={
-                                                                        selectedLecturerInfo?.avatar ||
-                                                                        "https://cdn-icons-png.flaticon.com/512/219/219986.png"
-                                                                    }
-                                                                    icon={<UserOutlined />}
-                                                                />
-                                                                {selectedLecturerInfo?.fullname}
-                                                            </div>
-                                                        </Descriptions.Item>
-                                                        <Descriptions.Item label={t("email")}>
-                                                            <a href={`mailto:${selectedLecturerInfo?.email}`}>
-                                                                <MailOutlined /> {selectedLecturerInfo?.email}
-                                                            </a>
-                                                        </Descriptions.Item>
-                                                        <Descriptions.Item label={t("phonenumber")}>
-                                                            <a href={`tel:${selectedLecturerInfo?.phone_number}`}>
-                                                                <PhoneIcon /> {selectedLecturerInfo?.phone_number}
-                                                            </a>
-                                                        </Descriptions.Item>
-                                                    </Descriptions>
-                                                ) : (
-                                                    <p>{t("please select a lecturer to view information")}</p>
-                                                )}
-                                            </Card>
-                                        </Col>
-                                    </Row>
-                                )}
-
-                                <Form.Item
-                                    label={t("content")}
-                                    name="content"
-                                    rules={[{ required: true, message: t("please enter your content") }]}
-                                >
-                                    <TextArea rows={5} style={{ boxShadow: 'none', borderWidth: 1.5 }} placeholder={t("enter your content")} />
-                                </Form.Item>
-
-                                <Form.Item className="mt-6">
-                                    <Button
-                                        type="primary"
-                                        htmlType="submit"
-                                        block
-                                        size="large"
-                                        style={{ width: '100px' }}
-                                    >
-                                        {t("submit")}
-                                    </Button>
-                                </Form.Item>
-                            </Form>
-                        </Card>
-                    </div>
                 </main>
+                <FullScreenLoader loading={loading} text={"Đang xử lý...Vui lòng đợi"} />
             </div>
             <Footer />
         </div>

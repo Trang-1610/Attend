@@ -1,17 +1,12 @@
 from rest_framework import serializers
 from .models import LeaveRequest
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-import io
-import datetime
+import json, datetime, io, os, tempfile, random
 from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.conf import settings
 from weasyprint import HTML
 from jinja2 import Environment, FileSystemLoader
-import os
-import tempfile
 from django.utils import timezone
-import random
 from lecturers.models import Lecturer
 
 # ==================================================
@@ -81,10 +76,33 @@ class SaveLeaveRequestSerializer(serializers.ModelSerializer):
         return None
 
     def create(self, validated_data):
+        request = self.context.get("request")
         leave_data = validated_data.pop("leave_data", None)
         leave_request = LeaveRequest.objects.create(**validated_data)
 
-        # Prepare context to render
+        images_files = request.FILES.getlist("images") if "images" in request.FILES else []
+        uploaded_urls = []
+
+        if images_files:
+            student_code = leave_request.student.student_code
+
+            for img in images_files:
+                ext = os.path.splitext(img.name)[1]  # .jpg, .png, ...
+                random_number = ''.join(str(random.randint(0, 9)) for _ in range(10))
+                now = timezone.now()
+                timestamp_str = now.strftime("%H%M%S%d%m%Y")
+
+                new_filename = f"{random_number}_{timestamp_str}_{student_code}{ext}"
+
+                img.open()
+                content = img.read()
+
+                saved_path = default_storage.save(f"leave_attachments/{new_filename}", ContentFile(content))
+                uploaded_urls.append(default_storage.url(saved_path))
+
+            leave_request.images_urls = uploaded_urls
+            leave_request.save(update_fields=["images_urls"])
+
         if leave_data:
             context = {
                 "fullname": leave_data.get("fullname", leave_request.student.fullname),

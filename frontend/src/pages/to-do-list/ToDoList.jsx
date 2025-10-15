@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Breadcrumb, message } from "antd";
-import { HomeOutlined, CheckSquareOutlined } from "@ant-design/icons";
+import { useState, useEffect, useCallback } from "react";
+import { message } from "antd";
 import { useTranslation } from "react-i18next";
 import Header from "../../components/Layout/Header";
 import Footer from "../../components/Layout/Footer";
@@ -10,9 +9,12 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import isBetween from "dayjs/plugin/isBetween";
 
-import ScheduleCard from "../../components/ToDoList/ScheduleCard";
-import ReminderCard from "../../components/ToDoList/ReminderCard";
-import EditReminderModal from "../../components/ToDoList/EditReminderModal";
+import ScheduleCard from "../../components/Cards/ScheduleCard";
+import BreadcrumbToDoList from "../../components/Breadcrumb/ToDoList";
+import CardDifferentTask from "../../components/Cards/DifferentTask";
+import ModelEditReminder from "../../components/Modal/ModelEditReminder";
+import FullScreenLoader from "../../components/Spin/Spin";
+import { getAccountId } from "../../utils/auth";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -20,7 +22,6 @@ dayjs.extend(isBetween);
 
 export default function ToDoList() {
     const { t } = useTranslation();
-
     const [loading, setLoading] = useState(true);
     const [scheduleData, setScheduleData] = useState([]);
     const [tasks, setTasks] = useState([]);
@@ -42,35 +43,10 @@ export default function ToDoList() {
     const [studentSubjects, setStudentSubjects] = useState([]);
     const [editSubject, setEditSubject] = useState(null);
 
-    useEffect(() => {
-        document.title = "ATTEND 3D - Danh sách nhiệm vụ";
+    // Get account id
+    const accountId = getAccountId();
 
-        fetchSchedule();
-        fetchReminders();
-        fetchStudentSubject();
-    }, [t]);
-
-    // load tasks when opening page
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem("tasks");
-            if (saved && saved !== "undefined") {
-                setTasks(JSON.parse(saved));
-            }
-        } catch (err) {
-            console.error("Error parsing tasks from localStorage:", err);
-            setTasks([]);
-        }
-    }, []);
-
-    // Every time tasks change, save it.
-    useEffect(() => {
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-    }, [tasks]);
-
-    const fetchSchedule = async () => {
-        const user = localStorage.getItem("user");
-        const accountId = user ? JSON.parse(user).account_id : null;
+    const fetchSchedule = useCallback(async () => {
         try {
             const res = await api.get("students/schedules/" + accountId + "/");
             setScheduleData(res.data || []);
@@ -79,12 +55,9 @@ export default function ToDoList() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [accountId]);
 
-    // fetch reminders
-    const fetchReminders = async () => {
-        const user = localStorage.getItem("user");
-        const accountId = user ? JSON.parse(user).account_id : null;
+    const fetchReminders = useCallback(async () => {
         try {
             const res = await api.get("reminders/" + accountId + "/");
             setReminders(res.data || []);
@@ -92,13 +65,9 @@ export default function ToDoList() {
             console.error("Error fetching reminders:", error);
             setReminders([]);
         }
-    };
+    }, [accountId]);
 
-    // fetch student_subjects
-    const fetchStudentSubject = async () => {
-        const user = localStorage.getItem("user");
-        const accountId = user ? JSON.parse(user).account_id : null;
-
+    const fetchStudentSubject = useCallback(async () => {
         try {
             const res = await api.get("subjects/student-subjects/" + accountId + "/");
             setStudentSubjects(res.data || []);
@@ -106,9 +75,16 @@ export default function ToDoList() {
             console.error("Error fetching student_subjects:", error);
             setStudentSubjects([]);
         }
-    }
+    }, [accountId]);
 
-    // mở modal edit
+    useEffect(() => {
+        document.title = "ATTEND 3D - Danh sách nhiệm vụ";
+        fetchSchedule();
+        fetchReminders();
+        fetchStudentSubject();
+    }, [fetchSchedule, fetchReminders, fetchStudentSubject]);
+
+    // Open modal edit
     const openEditModal = (reminder) => {
         setEditingReminder(reminder);
         setEditTitle(reminder.title);
@@ -186,75 +162,44 @@ export default function ToDoList() {
                 <Header />
                 <main className="mt-10 flex flex-col items-center">
                     <div className="w-full px-4">
-                        <Breadcrumb
-                            items={[
-                                {
-                                    href: "/",
-                                    title: (
-                                        <>
-                                            <HomeOutlined /> <span>{t("home")}</span>
-                                        </>
-                                    ),
-                                },
-                                {
-                                    href: "/to-do-list/today",
-                                    title: (
-                                        <>
-                                            <CheckSquareOutlined />{" "}
-                                            <span>To-Do List</span>
-                                        </>
-                                    ),
-                                },
-                            ]}
-                        />
+                        <BreadcrumbToDoList t={t} />
                     </div>
 
                     <div className="w-full mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <ScheduleCard
-                            loading={loading}
                             todaySchedules={todaySchedules}
                             openAttendanceModal={openAttendanceModal}
                         />
 
                         <div>
-                            <ReminderCard
+                            <CardDifferentTask
+                                t={t}
                                 reminders={reminders}
                                 openEditModal={openEditModal}
-
                                 newTask={newTask}
                                 setNewTask={setNewTask}
                                 addTask={addTask}
                                 tasks={tasks}
-                                toggleTask={toggleTask}
                                 deleteTask={deleteTask}
+                                toggleTask={toggleTask}
                             />
                         </div>
                     </div>
                 </main>
+                <FullScreenLoader loading={loading} text={"Đang xử lý...Vui lòng đợi"} />
             </div>
             <Footer />
 
-            {/* <AttendanceModal
-                openModal={openModal}
-                setOpenModal={setOpenModal}
-                selectedSchedule={selectedSchedule}
-            /> */}
-
-            <EditReminderModal
+            <ModelEditReminder
                 editModalOpen={editModalOpen}
                 setEditModalOpen={setEditModalOpen}
-
                 editTitle={editTitle}
                 setEditTitle={setEditTitle}
-
                 editContent={editContent}
                 setEditContent={setEditContent}
-
                 editRangeDate={editRangeDate}
                 setEditRangeDate={setEditRangeDate}
-
                 handleEditSave={handleEditSave}
-
                 studentSubjects={studentSubjects}
                 editSubject={editSubject}
                 setEditSubject={setEditSubject}
