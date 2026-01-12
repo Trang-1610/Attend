@@ -73,7 +73,7 @@
 - Django, Django Channels, required packages
 
 ```bash
-git clone https://github.com/Nguyen-Phong-211/attend3d.git
+git clone https://github.com/Trang-1610/Attend.git
 cd attend3d
 pip install -r requirements.txt
 ```
@@ -202,10 +202,7 @@ To contribute code:
 
 ## 📞 Contact Information
 
-- Website: [https://attend3d.io](https://attend3d.io)
-- Email: [zephyrnguyen.vn@gmail.com](mailto:zephyrnguyen.vn@gmail.com)
-- Phone: 0825 025 347
-- Facebook: [FACE CLASS - ATTEND 3D](https://facebook.com/faceclass.attend3d)
+- Phone: 0768 161 003
 
 <p align="center">
   <img src="https://static.djangoproject.com/img/logos/django-logo-negative.svg" alt="Django Logo" width="100"/>
